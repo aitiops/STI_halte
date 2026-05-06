@@ -132,10 +132,29 @@
     }
 
     .btn-primary {
-      background: var(--primary);
+      background: linear-gradient(135deg, #007bff, #005bac);
       color: #fff;
       width: 100%;
-      font-size: 15px;
+      font-size: 16px;
+      padding: 14px;
+      border-radius: 14px;
+      box-shadow: 0 10px 25px rgba(0, 91, 172, 0.35);
+      border: none;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(0, 91, 172, 0.45);
+    }
+    
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary::after {
+      content: " ➜";
+      font-weight: bold;
     }
 
     .btn-add {
@@ -157,6 +176,17 @@
       border: 2px dashed #cbd5e1;
       border-radius: 12px;
       background: #fff;
+    }
+
+    .loading,
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
     }
 
     /* ================= MOBILE FIX ================= */
