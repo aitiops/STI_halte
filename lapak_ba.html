@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meRusata name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Berita Acara Pekerjaan</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #005BAC;
+      --primary-dark: #00478a;
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --danger: #ef4444;
+      --success: #10b981;
+      --border: #dbe3ef;
+      --shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary), #0a74d1);
+      color: #fff;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .header img {
+      height: 42px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 24px auto;
+      padding: 0 14px 40px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(219, 227, 239, 0.7);
+    }
+
+    .card h2 {
+      margin: 0 0 18px;
+      font-size: 18px;
+      border-left: 5px solid var(--primary);
+      padding-left: 10px;
+      color: var(--primary);
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #334155;
+      font-size: 14px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      outline: none;
+      transition: 0.2s;
+      background: #fff;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 91, 172, 0.12);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .perangkat {
+      border: 1px solid #e5e7eb;
+      padding: 14px;
+      border-radius: 14px;
+      margin-bottom: 12px;
+      background: #f9fbff;
+    }
+
+    .judul-perangkat {
+      margin: 0 0 12px;
+      color: var(--primary);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      width: 100%;
+      font-size: 16px;
+      padding: 14px;
+      box-shadow: 0 10px 20px rgba(0, 91, 172, 0.18);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-add {
+      background: #0ea5e9;
+      color: #fff;
+      width: 100%;
+    }
+
+    .btn-delete {
+      background: var(--danger);
+      color: #fff;
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 200px;
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      background: #fff;
+      touch-action: none;
+      margin-bottom: 10px;
+    }
+
+    .loading,
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 16px;
+    }
+
+    .loading {
+      flex-direction: column;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .spinner {
+      border: 5px solid rgba(255,255,255,0.25);
+      border-top: 5px solid #fff;
+      border-radius: 50%;
+      width: 54px;
+      height: 54px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 14px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 24px 20px;
+      border-radius: 18px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      animation: fadeIn 0.25s ease;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+    }
+
+    .modal-content h2 {
+      margin-top: 0;
+      color: var(--primary);
+      font-size: 22px;
+      margin-bottom: 14px;
+    }
+
+    .modal-content p {
+      margin: 8px 0;
+      color: #374151;
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    .modal-content a {
+      display: inline-block;
+      color: var(--primary);
+      text-decoration: underline;
+      word-break: break-all;
+      max-width: 100%;
+    }
+
+    .modal-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .btn-wa {
+      background: #25D366;
+      color: #fff;
+    }
+
+    .btn-link {
+      background: #0ea5e9;
+      color: #fff;
+    }
+
+    .btn-close {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: -8px;
+      margin-bottom: 12px;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .header h1 {
+        font-size: 18px;
+      }
+
+      canvas {
+        height: 170px;
+      }
+
+      input,
+      select,
+      textarea {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <img src="logo_tj.png" alt="Logo">
+    <h1>Berita Acara Pekerjaan</h1>
+  </div>
+
+  <div class="container">
+
+    <!-- INFORMASI -->
+    <div class="card">
+      <h2>Informasi Pekerjaan</h2>
+
+      <div class="grid">
+        <div>
+          <label for="tanggal">Tanggal</label>
+          <input type="date" id="tanggal">
+        </div>
+
+        <div>
+          <label for="tiket">Nomor Tiket</label>
+          <input type="text" id="tiket" placeholder="Masukkan nomor tiket">
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label for="engineer">Nama Engineer</label>
+          <input type="text" id="engineer" placeholder="Masukkan nama engineer">
+        </div>
+
+        <div>
+          <label for="nik_engineer">NIK Engineer</label>
+          <input type="text" id="nik_engineer" placeholder="Masukkan NIK engineer">
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label for="koordinator">Nama Koordinator</label>
+          <input type="text" id="koordinator" placeholder="Masukkan nama koordinator">
+        </div>
+
+        <div>
+          <label for="nik_koordinator">NIK Koordinator</label>
+          <input type="text" id="nik_koordinator" placeholder="Masukkan NIK koordinator">
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label for="koridor">Koridor</label>
+          <select id="koridor" onchange="updateHalte()"></select>
+        </div>
+
+        <div>
+          <label for="halte">Halte</label>
+          <select id="halte">
+            <option value="">Pilih Halte</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="kegiatan">Kegiatan</label>
+      <textarea id="kegiatan" placeholder="Contoh: Pemasangan / Penggantian / Penarikan"></textarea>
+    </div>
+
+    <!-- PERANGKAT -->
+    <div class="card">
+      <h2>Detail Perangkat</h2>
+      <div id="perangkatContainer"></div>
+      <button class="btn-add" onclick="tambahPerangkat()">+ Tambah Perangkat</button>
+    </div>
+    
+    <label>Keterangan</label>
+    <textarea name="keterangan" id="keterangan"></textarea>
+    
+    <!-- PETUGAS -->
+    <div class="card">
+      <h2>Petugas Halte</h2>
+
+      <div class="grid">
+        <div>
+          <label for="petugas">Nama Petugas</label>
+          <input type="text" id="petugas" placeholder="Masukkan nama petugas">
+        </div>
+
+        <div>
+          <label for="nik_petugas">NIK Petugas</label>
+          <input type="text" id="nik_petugas" placeholder="Masukkan NIK petugas">
+        </div>
+      </div>
+    </div>
+
+    <!-- TTD -->
+    <div class="card">
+      <h2>Tanda Tangan</h2>
+
+      <label>TTD Engineer</label>
+      <canvas id="ttdEngineer"></canvas>
+      <button class="btn-delete" onclick="clearTTD('engineer')">Hapus TTD Engineer</button>
+
+      <br><br>
+
+      <label>TTD Petugas Halte</label>
+      <canvas id="ttdPetugas"></canvas>
+      <button class="btn-delete" onclick="clearTTD('petugas')">Hapus TTD Petugas</button>
+    </div>
+
+    <button class="btn-primary" onclick="submitForm()">Submit Berita Acara</button>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Menyimpan data...</p>
+  </div>
+
+  <!-- MODAL -->
+  <div id="successModal" class="modal">
+    <div class="modal-content">
+      <h2 id="modalTitle">✅ Berhasil!</h2>
+      <div id="previewData"></div>
+
+      <div class="modal-actions">
+        <button class="btn-link" id="btnOpenLink" style="display:none;">Buka Link Approval</button>
+        <button class="btn-wa" id="btnWA" style="display:none;">Kirim via WhatsApp</button>
+        <button class="btn-close" onclick="closeModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================
+    // KONFIG DATA KORIDOR
+    // ==========================
+    const koridorData = {
+      "1": { arahA: "Blok M", arahB: "Kota" },
+      "2": { arahA: "Pulo Gadung", arahB: "Kwitang" },
+      "3": { arahA: "Kalideres", arahB: "Pasar Baru" },
+      "4": { arahA: "Pulo Gadung", arahB: "Galunggung" },
+      "5": { arahA: "Ancol", arahB: "Kampung Melayu" },
+      "6": { arahA: "Ragunan", arahB: "Galunggung" },
+      "7": { arahA: "Kampung Rambutan", arahB: "Kampung Melayu" },
+      "8": { arahA: "Lebak Bulus", arahB: "Pasar Baru" },
+      "9": { arahA: "Pinang Ranti", arahB: "Pluit" },
+      "10": { arahA: "Tanjung Priok", arahB: "PGC" },
+      "11": { arahA: "Pulo Gebang", arahB: "Kampung Melayu" },
+      "12": { arahA: "Tanjung Priok", arahB: "Kota" },
+      "13": { arahA: "Tendean", arahB: "Ciledug" },
+      "14": { arahA: "Pasar Senen", arahB: "Jakarta International Stadium" }
+    };
+
+    const halteData = {
+      "1":["Blok M","ASEAN","Kejaksaan Agung","Masjid Agung","Bundaran Senayan","Istora","Polda Metro Jaya","Bendungan Hilir","Karet","Dukuh Atas","Tosari","Bundaran HI ASTRA","Sabang","Kebon Sirih","Monumen Nasional","Harmoni","Sawah Besar","Mangga Besar","Taman Sari","Glodok","Kali Besar","Monumen Fatahillah","Kota"],
+      "2":["Pulo Gadung","Bermis","Pulo Mas","Perintis Kemerdekaan","Pedongkelan","Cempaka Mas","Sumur Batu","Cempaka Baru","Pasar Cempaka Putih","Rawa Selatan","Galur","Pasar Senen","Senen Raya","RSPAD","Pejambon","Gambir","Istiqlal","Juanda","Pecenongan","Monumen Nasional","Balai Kota","Gambir 2","Kwitang"],
+      "3":["Kalideres","Pesakih","Sumur Bor","Rawa Buaya","Jembatan Baru","Pulo Nangka","Jembatan Gantung","Taman Kota","Damai","Jelambar","Grogol","Roxy","Petojo","Monumen Nasional","Pecenongan","Juanda","Pasar Baru"],
+      "4":["Pulo Gadung","Pasar Pulo Gadung","Pemuda Merdeka","Layur","Pemuda Rawamangun","Velodrome","Sunan Giri","Rawamangun","Simpang Pramuka","Pramuka Sari","Utan Kayu","Pasar Genjing","Fly Over Pramuka","Manggarai","Pasar Rumput","Halimun","Galunggung"],
+      "5":["Ancol","Pademangan","Gunung Sahari","Jembatan Merah","Pasar Baru Timur","Lapangan Banteng","Senen Sentral","Pal Putih","Kramat Sentiong","Salemba","Paseban","Matraman","Tegalan","Kesatrian","Matraman Baru","Bail Mester","Jatinegara","Kampung Melayu"],
+      "6":["Ragunan","Simpang Ragunan","Jati Barat","Jati Padang","Pejaten","Buncit Indah","Warung Jati","Warung Buncit","Duren Tiga","Mampang Prapatan","Underpass Kuningan","Patra Kuningan","Kuningan","Rasuna Said","Karet Kuningan","Kuningan Madya","Setiabudi","Flyover Kuningan","Galunggung"],
+      "7":["Kampung Rambutan","Tanah Merdeka","Fly Over Raya Bogor","Trikora","Pasar Induk","Kramat Jati Raya","Cililitan","Cawang Cililitan","Cawang Central","Cawang","Simpang Cawang","Gelanggang Remaja","Bidara Cina","Kampung Melayu"],
+      "8":["Lebak Bulus","Pondok Pinang","Underpass Lebak Bulus","Pondok Indah","Tanah Kusir","Bungu","Kebayoran Lama","Simprug","Permata Hijau","Arteri","Pos Pengumben","Kelapa Dua Sasak","Kebon Jeruk","Duri Kepa","Kedoya Panjang","Kedoya","Damai","Jelambar","Grogol Reformasi","Tanjung Duren","Tomang Raya","Tarakan","Petojo","Pecenongan","Juanda","Pasar Baru"],
+      "9":["Pinang Ranti","Makasar","Cawang Sentral","Cawang","Ciliwung","Cikoko","Tebet ECO Park","Pancoran Tugu","Pancoran","Tegal Parang","Simpang Kuningan","Denpasar","Widya Chandra","Semanggi","Senayan","Petamburan","Kemanggisan","Kota Bambu","Tanjung Duren","Grogol Reformasi","Kali Grogol","Jembatan Besi","Jembatan Dua","Jembatan Tiga","Penjaringan","Pluit"],
+      "10":["Tanjung Priok","Mambo","Koja","Walikota Jakarta Utara","Plumpang","Sunter Kelapa Gading","Kodamar","Simpang Cempaka","Cempaka Putih","Pulomas Bypass","Kayu Putih Rawasari","Pemuda Pramuka","Utan Kayu Rawamangun","Pisangan","Flyover Jatinegara","Pedati Perumpung","Kebon Nanas","Halim","Simpang Cawang","Cawang Central","Cawang Cililitan","PGC"],
+      "11":["Pulo Gebang","Walikota Jakarta Timur","Penggilingan","Flyover Pondok Kopi","Simpang Buaran","Buaran","Kampung Sumur","Klender","Stasiun Klender","Cipinang","Flyover Cipinang","Pasar Enjo","Flyover Jatinegara","Stasiun Jatinegara","Jatinegara","Kampung Melayu"],
+      "12":["Tanjung Priok","Mambo","Koja","Walikota Jakarta Utara","Plumpang","Sunter Kelapa Gading","Sunter Boulevard Barat","Sunter Karya","Sunter Utara","Danau Agung","Landasan Pacu","Jembatan Merah","Gunung Sahari","ITC Mangga Dua","Pangeran Jayakarta","Kali Besar","Bandengan","Penjaringan","Pluit","Pluit Selatan","Pakin","Gedong Panjang","Museum Fatahillah","Kota"],
+      "13":["Tendean","Rawa Barat","Tirtayasa","CSW","Mayestik","Velbak","Kebayoran Lama","Seskoal","Cipulir","Swadarma","JORR","Petukangan Utara","Puri Beta 1","Puri Beta 2","Ciledug"],
+      "14":["Pasar Senen","Senen Raya","Tanah Tinggi","Kemayoran","Landasan Pacu","Danau Agung","Danau Sunter","Jembatan Item","Jakarta International Stadium"]
+    };
+
+    let ttdEngineerPad, ttdPetugasPad;
+    let latestApprovalLink = "";
+
+    document.addEventListener("DOMContentLoaded", function () {
+      loadKoridor();
+      tambahPerangkat();
+      initTTD();
+      window.addEventListener("resize", resizeAllCanvas);
+    });
+
+    function loadKoridor() {
+      const koridor = document.getElementById("koridor");
+      koridor.innerHTML = '<option value="">Pilih Koridor</option>';
+
+      for (let k in koridorData) {
+        koridor.innerHTML += `
+          <option value="${k}">
+            Koridor ${k} (${koridorData[k].arahA} - ${koridorData[k].arahB})
+          </option>
+        `;
+      }
+    }
+
+    function updateHalte() {
+      const val = document.getElementById("koridor").value;
+      const halte = document.getElementById("halte");
+      halte.innerHTML = '<option value="">Pilih Halte</option>';
+
+      if (halteData[val]) {
+        halteData[val].forEach(h => {
+          halte.innerHTML += `<option value="${h}">${h}</option>`;
+        });
+      }
+    }
+
+    function tambahPerangkat() {
+      const container = document.getElementById("perangkatContainer");
+      const div = document.createElement("div");
+      div.className = "perangkat";
+
+      div.innerHTML = `
+        <h3 class="judul-perangkat"></h3>
+        <div class="grid">
+          <div>
+            <label>Nama Perangkat</label>
+            <input class="p_nama" placeholder="Contoh: DVR / TV / Access Point">
+          </div>
+          <div>
+            <label>Merk & Model</label>
+            <input class="p_merk" placeholder="Contoh: Hikvision / Samsung">
+          </div>
+        </div>
+        <div class="grid">
+          <div>
+            <label>Nomor SN</label>
+            <input class="p_sn" placeholder="Masukkan nomor serial">
+          </div>
+          <div>
+            <label>Kondisi</label>
+            <input class="p_kondisi" placeholder="Contoh: Baik / Rusak / Ganti Baru">
+          </div>
+        </div>
+        <button class="btn-delete" onclick="hapusPerangkat(this)">Hapus</button>
+      `;
+
+      container.appendChild(div);
+      updateNomor();
+    }
+
+    function hapusPerangkat(btn) {
+      btn.parentElement.remove();
+      updateNomor();
+    }
+
+    function updateNomor() {
+      document.querySelectorAll(".perangkat").forEach((el, i) => {
+        el.querySelector(".judul-perangkat").innerText = "Perangkat #" + (i + 1);
+      });
+    }
+
+    function initTTD() {
+      const canvasEngineer = document.getElementById("ttdEngineer");
+      const canvasPetugas = document.getElementById("ttdPetugas");
+
+      resizeCanvas(canvasEngineer);
+      resizeCanvas(canvasPetugas);
+
+      ttdEngineerPad = new SignaturePad(canvasEngineer);
+      ttdPetugasPad = new SignaturePad(canvasPetugas);
+    }
+
+    function resizeCanvas(canvas) {
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      const oldData = canvas.toDataURL ? canvas.toDataURL() : null;
+
+      canvas.width = canvas.offsetWidth * ratio;
+      canvas.height = canvas.offsetHeight * ratio;
+      canvas.getContext("2d").scale(ratio, ratio);
+
+      if (oldData && oldData !== "data:,") {
+        const img = new Image();
+        img.onload = () => {
+          canvas.getContext("2d").drawImage(img, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
+        };
+        img.src = oldData;
+      }
+    }
+
+    function resizeAllCanvas() {
+      resizeCanvas(document.getElementById("ttdEngineer"));
+      resizeCanvas(document.getElementById("ttdPetugas"));
+
+      if (ttdEngineerPad) ttdEngineerPad.clear();
+      if (ttdPetugasPad) ttdPetugasPad.clear();
+    }
+
+    function clearTTD(type) {
+      if (type === "engineer" && ttdEngineerPad) ttdEngineerPad.clear();
+      if (type === "petugas" && ttdPetugasPad) ttdPetugasPad.clear();
+    }
+
+    function getTTD() {
+      return {
+        engineer: ttdEngineerPad && !ttdEngineerPad.isEmpty() ? ttdEngineerPad.toDataURL() : "",
+        petugas: ttdPetugasPad && !ttdPetugasPad.isEmpty() ? ttdPetugasPad.toDataURL() : ""
+      };
+    }
+
+    function validateForm(data) {
+      if (!data.tanggal) return "Tanggal wajib diisi.";
+      if (!data.tiket) return "Nomor tiket wajib diisi.";
+      if (!data.engineer) return "Nama engineer wajib diisi.";
+      if (!data.nik_engineer) return "NIK engineer wajib diisi.";
+      if (!data.koordinator) return "Nama koordinator wajib diisi.";
+      if (!data.nik_koordinator) return "NIK koordinator wajib diisi.";
+      if (!data.koridor) return "Koridor wajib dipilih.";
+      if (!data.halte) return "Halte wajib dipilih.";
+      if (!data.kegiatan) return "Kegiatan wajib diisi.";
+      if (!data.petugas) return "Nama petugas wajib diisi.";
+      if (!data.nik_petugas) return "NIK petugas wajib diisi.";
+      if (!data.ttd_engineer) return "TTD Engineer wajib diisi.";
+      if (!data.ttd_petugas) return "TTD Petugas wajib diisi.";
+      if (!data.perangkat.length) return "Minimal harus ada 1 perangkat.";
+
+      for (let i = 0; i < data.perangkat.length; i++) {
+        const p = data.perangkat[i];
+        if (!p.nama || !p.merk || !p.sn || !p.kondisi) {
+          return `Data perangkat #${i + 1} belum lengkap.`;
+        }
+      }
+
+      return null;
+    }
+
+    async function submitForm() {
+      document.getElementById("loading").style.display = "flex";
+
+      const ttd = getTTD();
+
+      const perangkatList = [];
+      document.querySelectorAll(".perangkat").forEach(p => {
+        perangkatList.push({
+          nama: p.querySelector(".p_nama").value.trim(),
+          merk: p.querySelector(".p_merk").value.trim(),
+          sn: p.querySelector(".p_sn").value.trim(),
+          kondisi: p.querySelector(".p_kondisi").value.trim()
+        });
+      });
+
+      const data = {
+        tanggal: document.getElementById("tanggal").value,
+        tiket: document.getElementById("tiket").value.trim(),
+        engineer: document.getElementById("engineer").value.trim(),
+        nik_engineer: document.getElementById("nik_engineer").value.trim(),
+        koordinator: document.getElementById("koordinator").value.trim(),
+        nik_koordinator: document.getElementById("nik_koordinator").value.trim(),
+        koridor: document.getElementById("koridor").value,
+        halte: document.getElementById("halte").value,
+        kegiatan: document.getElementById("kegiatan").value.trim(),
+        perangkat: perangkatList,
+        keterangan: document.getElementById("keterangan").value,
+        petugas: document.getElementById("petugas").value.trim(),
+        nik_petugas: document.getElementById("nik_petugas").value.trim(),
+        ttd_engineer: ttd.engineer,
+        ttd_petugas: ttd.petugas
+      };
+
+      const error = validateForm(data);
+      if (error) {
+        document.getElementById("loading").style.display = "none";
+        showError(error);
+        return;
+      }
+
+      const url = "https://script.google.com/macros/s/AKfycbwOq97CF-uVNEGUnT4yUA0smcjvhxg0F_zvq3EZmlfaIdosquHdVuUHx-kdSRAgOJa7dg/exec";
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+        document.getElementById("loading").style.display = "none";
+
+        if (result.status === "success") {
+          latestApprovalLink = result.link || "";
+          showSuccess(data, latestApprovalLink);
+        } else {
+          showError(result.message || "Gagal menyimpan data.");
+        }
+
+      } catch (err) {
+        document.getElementById("loading").style.display = "none";
+        showError("Error koneksi / fetch gagal!");
+        console.error(err);
+      }
+    }
+    
+    function showSuccess(data, link){
+      const preview = `
+        <p><b>Tanggal:</b> ${data.tanggal}</p>
+        <p><b>Tiket:</b> ${data.tiket}</p>
+        <p><b>Engineer:</b> ${data.engineer}</p>
+        <p><b>Koridor:</b> ${data.koridor}</p>
+        <p><b>Halte:</b> ${data.halte}</p>
+        <p><b>Jumlah Perangkat:</b> ${data.perangkat.length}</p>
+        <p><b>Link Approval:</b><br>
+           <a href="${link}" target="_blank">${link}</a>
+        </p>
+      `;
+    
+      document.getElementById("modalTitle").innerText = "✅ Berhasil!";
+      document.getElementById("previewData").innerHTML = preview;
+      document.getElementById("successModal").style.display = "flex";
+    }
+    
+    function showError(message) {
+      document.getElementById("modalTitle").innerText = "❌ Gagal!";
+      document.getElementById("previewData").innerHTML = `<p style="text-align:center;">${message}</p>`;
+      document.getElementById("successModal").style.display = "flex";
+
+      document.getElementById("btnOpenLink").style.display = "none";
+      document.getElementById("btnWA").style.display = "none";
+    }
+    
+    function closeModal() {
+      document.getElementById("successModal").style.display = "none";
+    
+      // reset form input
+      document.querySelectorAll("input, textarea").forEach(el => el.value = "");
+    
+      document.getElementById("koridor").value = "";
+      document.getElementById("halte").innerHTML = '<option value="">Pilih Halte</option>';
+    
+      // reset perangkat
+      document.getElementById("perangkatContainer").innerHTML = "";
+      tambahPerangkat();
+    
+      // reset TTD
+      if (ttdEngineerPad) ttdEngineerPad.clear();
+      if (ttdPetugasPad) ttdPetugasPad.clear();
+    
+      // scroll ke atas biar enak
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function openWhatsApp(link) {
+      const text = encodeURIComponent("Halo, mohon approval Berita Acara berikut:\n\n" + link);
+      window.open("https://wa.me/?text=" + text, "_blank");
+    }
+  </script>
+</body>
+</html>
