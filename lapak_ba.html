@@ -689,10 +689,35 @@
     }
 
     function getTTD() {
-      return {
-        engineer: ttdEngineerPad && !ttdEngineerPad.isEmpty() ? ttdEngineerPad.toDataURL() : "",
-        petugas: ttdPetugasPad && !ttdPetugasPad.isEmpty() ? ttdPetugasPad.toDataURL() : ""
-      };
+      const engineer = (ttdEngineerPad && !ttdEngineerPad.isEmpty())
+        ? ttdEngineerPad.toDataURL("image/png")
+        : "";
+    
+      const petugas = (ttdPetugasPad && !ttdPetugasPad.isEmpty())
+        ? ttdPetugasPad.toDataURL("image/png")
+        : "";
+    
+      return { engineer, petugas };
+    }
+
+    function initTTD() {
+      const canvasEngineer = document.getElementById("ttdEngineer");
+      const canvasPetugas = document.getElementById("ttdPetugas");
+    
+      resizeCanvas(canvasEngineer);
+      resizeCanvas(canvasPetugas);
+    
+      ttdEngineerPad = new SignaturePad(canvasEngineer);
+      ttdPetugasPad = new SignaturePad(canvasPetugas);
+    
+      // 🔥 FIX: cegah false empty karena event timing
+      canvasEngineer.addEventListener("pointerup", () => {
+        ttdEngineerPad._isEmpty = false;
+      });
+    
+      canvasPetugas.addEventListener("pointerup", () => {
+        ttdPetugasPad._isEmpty = false;
+      });
     }
 
     function validateForm(data) {
