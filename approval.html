@@ -305,7 +305,8 @@
     // =========================================
     // KONFIGURASI
     // =========================================
-    const SUBMIT_ID = "<?= id ?>".trim();
+    const SUBMIT_ID =
+      new URLSearchParams(window.location.search).get("id") || "";
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyWVMlkJcr72UiJtuk6_rPzf3FvWRQ9sTarRbiDKqUkc8pKRcJSJl08EHkhTxD5QVAErg/exec";
 
     let pad = null;
