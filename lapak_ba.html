@@ -756,7 +756,7 @@
                   type="text"
                   class="p_nama_manual hidden"
                   placeholder="Input nama perangkat manual"
-                  style="margin-top:8px;"
+                  style="display:none; margin-top:8px;"
                 >
               </div>
       
@@ -1287,25 +1287,57 @@
 
     function toggleNamaManual(el) {
 
-  const wrapper =
-    el.parentElement;
-
-  const input =
-    wrapper.querySelector(".p_nama_manual");
-
-  if (el.value === "Lainnya") {
-
-    input.classList.remove("hidden");
-
-  } else {
-
-    input.classList.add("hidden");
-
-    input.value = "";
-
-  }
-
-}
+      const parent =
+        el.closest(".perangkat");
+    
+      const namaManual =
+        parent.querySelector(".p_nama_manual");
+    
+      const merkSelect =
+        parent.querySelector(".p_merk");
+    
+      if (el.value === "Lainnya") {
+    
+        // tampilkan input nama manual
+        namaManual.classList.remove("hidden");
+        namaManual.style.display = "block";
+    
+        // ubah merk jadi input manual
+        merkSelect.outerHTML = `
+          <input
+            type="text"
+            class="p_merk"
+            placeholder="Input merk manual"
+          >
+        `;
+    
+      } else {
+    
+        // sembunyikan nama manual
+        namaManual.classList.add("hidden");
+        namaManual.style.display = "none";
+        namaManual.value = "";
+    
+        // balikin merk jadi select dropdown
+        const wrapper =
+          parent.querySelector(".grid");
+    
+        const merkContainer =
+          parent.querySelector(".p_merk").parentElement;
+    
+        merkContainer.innerHTML = `
+          <label>Merk</label>
+    
+          <select class="p_merk">
+            <option value="">Pilih Merk</option>
+          </select>
+        `;
+    
+        // reload merk sesuai perangkat
+        updateMerk(el);
+    
+      }
+    }
   </script>
   <script>
 
