@@ -469,7 +469,41 @@
 
         <div>
           <label for="tiket">Nomor Tiket</label>
-          <input type="text" id="tiket" placeholder="Masukkan nomor tiket">
+        
+          <div style="
+            display:flex;
+            align-items:center;
+            border:1px solid var(--border);
+            border-radius:10px;
+            overflow:hidden;
+            background:#fff;
+            margin-bottom:12px;
+          ">
+        
+            <div style="
+              padding:11px 14px;
+              background:#f3f6fb;
+              border-right:1px solid var(--border);
+              font-weight:700;
+              color:#005BAC;
+              white-space:nowrap;
+            ">
+              IT-
+            </div>
+        
+            <input
+              type="text"
+              id="tiket"
+              placeholder="Masukkan nomor tiket"
+              style="
+                border:none;
+                margin:0;
+                border-radius:0;
+                box-shadow:none;
+              "
+            >
+        
+          </div>
         </div>
       </div>
 
@@ -944,7 +978,7 @@
 
       const data = {
         tanggal: document.getElementById("tanggal").value,
-        tiket: document.getElementById("tiket").value.trim(),
+        tiket: "IT-" + document.getElementById("tiket").value.trim(),
         engineer: document.getElementById("engineer").value.trim(),
         nik_engineer: document.getElementById("nik_engineer").value.trim(),
         koordinator: document.getElementById("koordinator").value.trim(),
