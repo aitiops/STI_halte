@@ -400,7 +400,7 @@
 <body>
 
   <div class="header">
-    <img src="logo_tj.png" alt="Logo">
+    <img src="logo.png" alt="Logo">
     <h1>Berita Acara Pekerjaan</h1>
   </div>
 
@@ -689,35 +689,10 @@
     }
 
     function getTTD() {
-      const engineer = (ttdEngineerPad && !ttdEngineerPad.isEmpty())
-        ? ttdEngineerPad.toDataURL("image/png")
-        : "";
-    
-      const petugas = (ttdPetugasPad && !ttdPetugasPad.isEmpty())
-        ? ttdPetugasPad.toDataURL("image/png")
-        : "";
-    
-      return { engineer, petugas };
-    }
-
-    function initTTD() {
-      const canvasEngineer = document.getElementById("ttdEngineer");
-      const canvasPetugas = document.getElementById("ttdPetugas");
-    
-      resizeCanvas(canvasEngineer);
-      resizeCanvas(canvasPetugas);
-    
-      ttdEngineerPad = new SignaturePad(canvasEngineer);
-      ttdPetugasPad = new SignaturePad(canvasPetugas);
-    
-      // 🔥 FIX: cegah false empty karena event timing
-      canvasEngineer.addEventListener("pointerup", () => {
-        ttdEngineerPad._isEmpty = false;
-      });
-    
-      canvasPetugas.addEventListener("pointerup", () => {
-        ttdPetugasPad._isEmpty = false;
-      });
+      return {
+        engineer: ttdEngineerPad && !ttdEngineerPad.isEmpty() ? ttdEngineerPad.toDataURL() : "",
+        petugas: ttdPetugasPad && !ttdPetugasPad.isEmpty() ? ttdPetugasPad.toDataURL() : ""
+      };
     }
 
     function validateForm(data) {
@@ -897,5 +872,18 @@
       window.open("https://wa.me/?text=" + text, "_blank");
     }
   </script>
+  <script>
+
+    const ua = navigator.userAgent || "";
+    
+    if (/FBAN|FBAV|Instagram|Line|WhatsApp/i.test(ua)) {
+    
+      alert(
+        "Silakan buka link menggunakan Chrome atau Safari agar approval berjalan normal."
+      );
+    
+    }
+
+</script>
 </body>
 </html>
