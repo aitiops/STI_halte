@@ -701,15 +701,26 @@
           <div class="grid">
       
             <div>
-              <label>Nama Perangkat</label>
-      
-              <select class="p_nama"
-                      onchange="updateMerk(this)">
-      
-                ${perangkatOptions}
-      
-              </select>
-            </div>
+                <label>Nama Perangkat</label>
+              
+                <select class="p_nama"
+                        onchange="updateMerk(this); toggleNamaManual(this)">
+              
+                  ${perangkatOptions}
+              
+                  <option value="Lainnya">
+                    Lainnya
+                  </option>
+              
+                </select>
+              
+                <input
+                  type="text"
+                  class="p_nama_manual hidden"
+                  placeholder="Input nama perangkat manual"
+                  style="margin-top:8px;"
+                >
+              </div>
       
             <div>
               <label>Merk</label>
@@ -885,17 +896,47 @@
       const ttd = getTTD();
 
       const perangkatList = [];
+
       document.querySelectorAll(".perangkat").forEach(p => {
+      
+        const namaSelect =
+          p.querySelector(".p_nama");
+      
+        const namaManual =
+          p.querySelector(".p_nama_manual");
+      
+        const nama =
+          namaSelect.value === "Lainnya"
+            ? namaManual.value.trim()
+            : namaSelect.value.trim();
+      
         perangkatList.push({
-          nama: p.querySelector(".p_nama").value.trim(),
-          merk: p.querySelector(".p_merk").value.trim(),
-          model: p.querySelector(".p_model").value.trim(),
-          sn: p.querySelector(".p_sn").value.trim(),
+      
+          nama: nama,
+      
+          merk:
+            p.querySelector(".p_merk")
+              .value
+              .trim(),
+      
+          model:
+            p.querySelector(".p_model")
+              .value
+              .trim(),
+      
+          sn:
+            p.querySelector(".p_sn")
+              .value
+              .trim(),
+      
           kondisi:
             p.querySelector(".p_kondisi").value === "Lainnya"
               ? p.querySelector(".p_kondisi_lain").value.trim()
               : p.querySelector(".p_kondisi").value.trim()
+      
         });
+      
+      });
       });
 
       const data = {
@@ -1206,6 +1247,28 @@
         inputLain.value = "";
       }
     }
+
+    function toggleNamaManual(el) {
+
+  const wrapper =
+    el.parentElement;
+
+  const input =
+    wrapper.querySelector(".p_nama_manual");
+
+  if (el.value === "Lainnya") {
+
+    input.classList.remove("hidden");
+
+  } else {
+
+    input.classList.add("hidden");
+
+    input.value = "";
+
+  }
+
+}
   </script>
   <script>
 
