@@ -438,6 +438,10 @@
       transform: rotate(360deg);
     }
   }
+  
+  .label-white{
+    color: #fff;
+  }
   </style>
 </head>
 <body>
@@ -468,24 +472,28 @@
       <div class="grid">
         <div>
           <label for="engineer">Nama Engineer</label>
-          <input type="text" id="engineer" placeholder="Masukkan nama engineer">
+          <select id="engineer" onchange="fillEngineerNIK()">
+            <option value="">Pilih Engineer</option>
+          </select>
         </div>
 
         <div>
           <label for="nik_engineer">NIK Engineer</label>
-          <input type="text" id="nik_engineer" placeholder="Masukkan NIK engineer">
+          <input type="text" id="nik_engineer" readonly>
         </div>
       </div>
 
       <div class="grid">
         <div>
           <label for="koordinator">Nama Koordinator</label>
-          <input type="text" id="koordinator" placeholder="Masukkan nama koordinator">
+          <select id="koordinator" onchange="fillKoordinatorNIK()">
+            <option value="">Pilih Koordinator</option>
+          </select>
         </div>
 
         <div>
           <label for="nik_koordinator">NIK Koordinator</label>
-          <input type="text" id="nik_koordinator" placeholder="Masukkan NIK koordinator">
+          <input type="text" id="nik_koordinator" readonly>
         </div>
       </div>
 
@@ -504,7 +512,14 @@
       </div>
 
       <label for="kegiatan">Kegiatan</label>
-      <textarea id="kegiatan" placeholder="Contoh: Pemasangan / Penggantian / Penarikan"></textarea>
+      <select id="kegiatan">
+        <option value="">Pilih Kegiatan</option>
+        <option value="Penarikan">Penarikan</option>
+        <option value="Pemasangan">Pemasangan</option>
+        <option value="Penggantian">Penggantian</option>
+        <option value="Perbaikan">Perbaikan</option>
+        <option value="Preventive Maintenance">Preventive Maintenance</option>
+      </select>
     </div>
 
     <!-- PERANGKAT -->
@@ -514,7 +529,7 @@
       <button class="btn-add" onclick="tambahPerangkat()">+ Tambah Perangkat</button>
     </div>
     
-    <label>Keterangan</label>
+    <label class="label-white">Keterangan</label>
     <textarea name="keterangan" id="keterangan"></textarea>
     
     <!-- PETUGAS -->
@@ -611,13 +626,27 @@
 
     let ttdEngineerPad, ttdPetugasPad;
     let latestApprovalLink = "";
-
-    document.addEventListener("DOMContentLoaded", function () {
-      loadKoridor();
-      tambahPerangkat();
-      initTTD();
-      window.addEventListener("resize", resizeAllCanvas);
-    });
+    
+    const SCRIPT_URL =
+      "https://script.google.com/macros/s/AKfycbyWVMlkJcr72UiJtuk6_rPzf3FvWRQ9sTarRbiDKqUkc8pKRcJSJl08EHkhTxD5QVAErg/exec";
+      
+      document.addEventListener("DOMContentLoaded", async function () {
+      
+        loadKoridor();
+      
+        await loadKaryawan();
+      
+        await loadPerangkat();
+      
+        tambahPerangkat();
+      
+        initTTD();
+      
+        window.addEventListener(
+          "resize",
+          resizeAllCanvas
+        );
+      });
 
     function loadKoridor() {
       const koridor = document.getElementById("koridor");
@@ -645,37 +674,107 @@
     }
 
     function tambahPerangkat() {
-      const container = document.getElementById("perangkatContainer");
-      const div = document.createElement("div");
-      div.className = "perangkat";
 
-      div.innerHTML = `
-        <h3 class="judul-perangkat"></h3>
-        <div class="grid">
-          <div>
-            <label>Nama Perangkat</label>
-            <input class="p_nama" placeholder="Contoh: DVR / TV / Access Point">
+        const container =
+          document.getElementById("perangkatContainer");
+      
+        const div = document.createElement("div");
+      
+        div.className = "perangkat";
+      
+        let perangkatOptions =
+          '<option value="">Pilih Perangkat</option>';
+      
+        Object.keys(perangkatDB).forEach(nama => {
+      
+          perangkatOptions += `
+            <option value="${nama}">
+              ${nama}
+            </option>
+          `;
+        });
+      
+        div.innerHTML = `
+      
+          <h3 class="judul-perangkat"></h3>
+      
+          <div class="grid">
+      
+            <div>
+              <label>Nama Perangkat</label>
+      
+              <select class="p_nama"
+                      onchange="updateMerk(this)">
+      
+                ${perangkatOptions}
+      
+              </select>
+            </div>
+      
+            <div>
+              <label>Merk</label>
+      
+              <select class="p_merk">
+                <option value="">Pilih Merk</option>
+              </select>
+            </div>
+      
           </div>
-          <div>
-            <label>Merk & Model</label>
-            <input class="p_merk" placeholder="Contoh: Hikvision / Samsung">
-          </div>
-        </div>
-        <div class="grid">
-          <div>
-            <label>Nomor SN</label>
-            <input class="p_sn" placeholder="Masukkan nomor serial">
-          </div>
-          <div>
-            <label>Kondisi</label>
-            <input class="p_kondisi" placeholder="Contoh: Baik / Rusak / Ganti Baru">
-          </div>
-        </div>
-        <button class="btn-delete" onclick="hapusPerangkat(this)">Hapus</button>
-      `;
+      
+      
+          <div class="grid">
 
-      container.appendChild(div);
-      updateNomor();
+            <div>
+              <label>Model</label>
+          
+              <input class="p_model"
+                     placeholder="Masukkan model">
+            </div>
+          
+            <div>
+              <label>SN</label>
+          
+              <input class="p_sn"
+                     placeholder="Masukkan serial number">
+            </div>
+          
+          </div>
+          
+          <div class="grid">
+          
+            <div>
+              <label>Kondisi</label>
+      
+              <select class="p_kondisi">
+      
+                <option value="">Pilih Kondisi</option>
+      
+                <option value="Baik">Baik</option>
+      
+                <option value="Rusak">Rusak</option>
+      
+                <option value="Hilang">Hilang</option>
+      
+                <option value="Ganti Baru">
+                  Ganti Baru
+                </option>
+      
+              </select>
+            </div>
+      
+          </div>
+      
+          <button class="btn-delete"
+                  onclick="hapusPerangkat(this)">
+      
+            Hapus
+      
+          </button>
+        `;
+      
+        container.appendChild(div);
+      
+        updateNomor();
     }
 
     function hapusPerangkat(btn) {
@@ -755,7 +854,7 @@
 
       for (let i = 0; i < data.perangkat.length; i++) {
         const p = data.perangkat[i];
-        if (!p.nama || !p.merk || !p.sn || !p.kondisi) {
+        if (!p.nama || !p.merk || !p.model || !p.sn || !p.kondisi) {
           return `Data perangkat #${i + 1} belum lengkap.`;
         }
       }
@@ -773,6 +872,7 @@
         perangkatList.push({
           nama: p.querySelector(".p_nama").value.trim(),
           merk: p.querySelector(".p_merk").value.trim(),
+          model: p.querySelector(".p_model").value.trim(),
           sn: p.querySelector(".p_sn").value.trim(),
           kondisi: p.querySelector(".p_kondisi").value.trim()
         });
@@ -803,7 +903,7 @@
         return;
       }
 
-      const url = "https://script.google.com/macros/s/AKfycbyWVMlkJcr72UiJtuk6_rPzf3FvWRQ9sTarRbiDKqUkc8pKRcJSJl08EHkhTxD5QVAErg/exec";
+      const url =SCRIPT_URL;
 
       try {
         const res = await fetch(url, {
@@ -976,6 +1076,95 @@
         "https://wa.me/?text=" + text,
         "_blank"
       );
+    }
+    
+    let engineerDB = [];
+    let koordinatorDB = [];
+    let perangkatDB = {};
+    
+    async function loadKaryawan() {
+    
+      const res = await fetch(SCRIPT_URL + "?mode=karyawan");
+      const result = await res.json();
+    
+      engineerDB = result.engineer || [];
+      koordinatorDB = result.koordinator || [];
+    
+      const engineerSelect = document.getElementById("engineer");
+      const koordinatorSelect = document.getElementById("koordinator");
+    
+      engineerDB.forEach(e => {
+    
+        engineerSelect.innerHTML += `
+          <option value="${e.nama}">
+            ${e.nama}
+          </option>
+        `;
+      });
+    
+      koordinatorDB.forEach(k => {
+    
+        koordinatorSelect.innerHTML += `
+          <option value="${k.nama}">
+            ${k.nama}
+          </option>
+        `;
+      });
+    }
+    
+    
+    function fillEngineerNIK() {
+    
+      const nama = document.getElementById("engineer").value;
+    
+      const data = engineerDB.find(x => x.nama === nama);
+    
+      document.getElementById("nik_engineer").value =
+        data ? data.nik : "";
+    }
+    
+    
+    function fillKoordinatorNIK() {
+    
+      const nama = document.getElementById("koordinator").value;
+    
+      const data = koordinatorDB.find(x => x.nama === nama);
+    
+      document.getElementById("nik_koordinator").value =
+        data ? data.nik : "";
+    }
+    
+    
+    async function loadPerangkat() {
+    
+      const res = await fetch(SCRIPT_URL + "?mode=perangkat");
+    
+      perangkatDB = await res.json();
+    }
+    
+    
+    function updateMerk(el) {
+    
+      const parent = el.closest(".perangkat");
+    
+      const merkSelect = parent.querySelector(".p_merk");
+    
+      const nama = el.value;
+    
+      merkSelect.innerHTML =
+        '<option value="">Pilih Merk</option>';
+    
+      if (perangkatDB[nama]) {
+    
+        perangkatDB[nama].forEach(m => {
+    
+          merkSelect.innerHTML += `
+            <option value="${m}">
+              ${m}
+            </option>
+          `;
+        });
+      }
     }
   </script>
   <script>
