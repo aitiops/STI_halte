@@ -745,19 +745,33 @@
             <div>
               <label>Kondisi</label>
       
-              <select class="p_kondisi">
-      
+              <select class="p_kondisi"
+                      onchange="toggleKondisiLain(this)">
+              
                 <option value="">Pilih Kondisi</option>
-      
+              
                 <option value="Baik">Baik</option>
-      
+              
                 <option value="Rusak">Rusak</option>
-      
+              
                 <option value="Hilang">Hilang</option>
-      
+              
                 <option value="Ganti Baru">
                   Ganti Baru
                 </option>
+              
+                <option value="Lainnya">
+                  Lainnya
+                </option>
+              
+              </select>
+              
+              <input
+                type="text"
+                class="p_kondisi_lain"
+                placeholder="Masukkan kondisi lainnya"
+                style="display:none; margin-top:8px;"
+              >
       
               </select>
             </div>
@@ -854,6 +868,9 @@
 
       for (let i = 0; i < data.perangkat.length; i++) {
         const p = data.perangkat[i];
+        if (!p.kondisi) {
+          return `Kondisi perangkat #${i + 1} wajib diisi.`;
+        }
         if (!p.nama || !p.merk || !p.model || !p.sn || !p.kondisi) {
           return `Data perangkat #${i + 1} belum lengkap.`;
         }
@@ -874,7 +891,10 @@
           merk: p.querySelector(".p_merk").value.trim(),
           model: p.querySelector(".p_model").value.trim(),
           sn: p.querySelector(".p_sn").value.trim(),
-          kondisi: p.querySelector(".p_kondisi").value.trim()
+          kondisi:
+            p.querySelector(".p_kondisi").value === "Lainnya"
+              ? p.querySelector(".p_kondisi_lain").value.trim()
+              : p.querySelector(".p_kondisi").value.trim()
         });
       });
 
@@ -1164,6 +1184,26 @@
             </option>
           `;
         });
+      }
+    }
+    
+    function toggleKondisiLain(el) {
+
+      const parent =
+        el.closest(".perangkat");
+    
+      const inputLain =
+        parent.querySelector(".p_kondisi_lain");
+    
+      if (el.value === "Lainnya") {
+    
+        inputLain.style.display = "block";
+    
+      } else {
+    
+        inputLain.style.display = "none";
+    
+        inputLain.value = "";
       }
     }
   </script>
