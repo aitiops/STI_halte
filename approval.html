@@ -1,633 +1,1287 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Approval Koordinator</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Approval Koordinator</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
-  <style>
-    :root {
-      --primary: #005bac;
-      --primary-dark: #004785;
-      --bg: #f4f7fb;
-      --danger: #ff4d4f;
-      --success-bg: #d4edda;
-      --success-text: #155724;
-      --warning-bg: #fff3cd;
-      --warning-text: #856404;
-      --error-bg: #f8d7da;
-      --error-text: #721c24;
-      --loading-bg: #e9f2ff;
-      --loading-text: #0b4f9c;
-      --text: #222;
-      --muted: #666;
-      --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-      --radius: 12px;
-    }
+<style>
 
-    * {
-      box-sizing: border-box;
-    }
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
 
-    body {
-      margin: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
+:root{
+  --primary:#005BAC;
+  --primary2:#0078e7;
+  --bg:#f3f8ff;
+  --card:#ffffff;
+  --text:#1f2937;
+  --muted:#6b7280;
+  --border:#dbe7f5;
+  --success:#10b981;
+  --warning:#f59e0b;
+  --danger:#ef4444;
 
-    .header {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: #fff;
-      padding: 18px 16px;
-      text-align: center;
-      font-weight: 700;
-      font-size: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
+  --shadow:
+    0 10px 30px rgba(0,91,172,.08);
 
-    .container {
-      padding: 16px;
-      max-width: 720px;
-      margin: auto;
-    }
+  --radius:20px;
+}
 
-    .card {
-      background: #fff;
-      padding: 16px;
-      border-radius: var(--radius);
-      margin-bottom: 16px;
-      box-shadow: var(--card-shadow);
-    }
+body{
+  font-family:'Segoe UI',sans-serif;
+  background:
+    linear-gradient(
+      180deg,
+      #005BAC 0px,
+      #005BAC 240px,
+      #f3f8ff 240px,
+      #f3f8ff 100%
+    );
+  color:var(--text);
+  min-height:100vh;
+}
 
-    .title {
-      font-weight: 700;
-      margin-bottom: 12px;
-      border-left: 4px solid var(--primary);
-      padding-left: 10px;
-      font-size: 16px;
-    }
+/* ================= HEADER ================= */
 
-    .info-item {
-      margin-bottom: 8px;
-      line-height: 1.6;
-      word-break: break-word;
-    }
+.header{
+  padding:28px 18px 26px;
+  text-align:center;
+  color:#fff;
+}
 
-    .perangkat {
-      border: 1px solid #eee;
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 10px;
-      background: #fafafa;
-      font-size: 14px;
-      line-height: 1.6;
-    }
+.logo-wrap{
+  width:82px;
+  height:82px;
+  margin:auto;
+  border-radius:24px;
+  background:rgba(255,255,255,.15);
+  backdrop-filter:blur(10px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:16px;
+  border:1px solid rgba(255,255,255,.18);
+}
 
-    .perangkat:last-child {
-      margin-bottom: 0;
-    }
+.logo-wrap img{
+  width:56px;
+  height:56px;
+  object-fit:contain;
+}
 
-    canvas {
-      width: 100%;
-      height: 220px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      touch-action: none;
-      background: #fff;
-      display: block;
-    }
+.header h1{
+  font-size:28px;
+  font-weight:800;
+  letter-spacing:.3px;
+}
 
-    button,
-    .btn-link {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      background: var(--primary);
-      color: #fff;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s ease;
-      text-align: center;
-      text-decoration: none;
-      display: inline-block;
-    }
+.header p{
+  margin-top:8px;
+  font-size:14px;
+  opacity:.95;
+}
 
-    button:hover,
-    .btn-link:hover {
-      opacity: 0.95;
-      transform: translateY(-1px);
-    }
+/* ================= CONTAINER ================= */
 
-    button:disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
-      transform: none;
-    }
+.container{
+  width:100%;
+  max-width:900px;
+  margin:auto;
+  padding:0 16px 40px;
+}
 
-    .btn-danger {
-      background: var(--danger);
-      margin-top: 12px;
-    }
+/* ================= CARD ================= */
 
-    .btn-download {
-      margin-top: 12px;
-      background: #16a34a;
-    }
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:22px;
+  margin-bottom:18px;
+  box-shadow:var(--shadow);
+  border:1px solid #edf3fb;
+}
 
-    .status {
-      text-align: center;
-      font-weight: 700;
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 15px;
-    }
+.card-title{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:20px;
+}
 
-    .pending {
-      background: var(--warning-bg);
-      color: var(--warning-text);
-    }
+.card-icon{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  background:#eaf4ff;
+  color:var(--primary);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  font-weight:700;
+}
 
-    .approved {
-      background: var(--success-bg);
-      color: var(--success-text);
-    }
+.card-title h2{
+  font-size:18px;
+  color:var(--primary);
+}
 
-    .error {
-      background: var(--error-bg);
-      color: var(--error-text);
-    }
+/* ================= STATUS ================= */
 
-    .loading {
-      background: var(--loading-bg);
-      color: var(--loading-text);
-    }
+.status-box{
+  border-radius:18px;
+  padding:18px;
+  text-align:center;
+  font-weight:700;
+  font-size:15px;
+}
 
-    .debug {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 10px;
-      word-break: break-word;
-    }
+.status-pending{
+  background:#fff7e8;
+  color:#b45309;
+}
 
-    .empty {
-      color: var(--muted);
-      font-style: italic;
-    }
+.status-approved{
+  background:#eafaf3;
+  color:#047857;
+}
 
-    .hidden {
-      display: none !important;
-    }
+.status-error{
+  background:#fef2f2;
+  color:#b91c1c;
+}
 
-    .popup-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-      padding: 16px;
-    }
+.status-loading{
+  background:#eff6ff;
+  color:#1d4ed8;
+}
 
-    .popup-box {
-      background: #fff;
-      padding: 24px;
-      border-radius: 14px;
-      text-align: center;
-      width: 100%;
-      max-width: 320px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-      animation: popupFade 0.2s ease;
-    }
+/* ================= INFO ================= */
 
-    .popup-box h3 {
-      margin: 0 0 10px;
-    }
+.info-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
 
-    .popup-box p {
-      margin: 0 0 18px;
-      color: var(--muted);
-    }
+.info-item{
+  background:#f8fbff;
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:14px;
+}
 
-    @keyframes popupFade {
-      from {
-        opacity: 0;
-        transform: translateY(10px) scale(0.98);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
+.info-label{
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:6px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
 
-    /* ===== LOADING SPINNER ===== */
-    .spinner {
-      width: 22px;
-      height: 22px;
-      border: 3px solid rgba(255,255,255,0.4);
-      border-top: 3px solid #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
+.info-value{
+  font-size:15px;
+  font-weight:700;
+  word-break:break-word;
+  line-height:1.5;
+}
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+/* ================= PERANGKAT ================= */
 
-    /* loading text anim */
-    .loading-dots::after {
-      content: "";
-      animation: dots 1.2s infinite;
-    }
+.perangkat{
+  background:#f8fbff;
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:14px;
+}
 
-    @keyframes dots {
-      0% { content: ""; }
-      33% { content: "."; }
-      66% { content: ".."; }
-      100% { content: "..."; }
-    }
-  </style>
+.perangkat:last-child{
+  margin-bottom:0;
+}
 
+.perangkat-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+}
+
+.perangkat-title{
+  font-size:15px;
+  font-weight:800;
+  color:var(--primary);
+}
+
+.perangkat-badge{
+  background:#005BAC;
+  color:#fff;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.perangkat-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.perangkat-item{
+  background:#fff;
+  border-radius:14px;
+  padding:12px;
+  border:1px solid #edf3fb;
+}
+
+.perangkat-label{
+  font-size:11px;
+  color:var(--muted);
+  margin-bottom:6px;
+  font-weight:700;
+  text-transform:uppercase;
+}
+
+.perangkat-value{
+  font-size:14px;
+  font-weight:700;
+  line-height:1.5;
+  word-break:break-word;
+}
+
+/* ================= SIGNATURE ================= */
+
+.signature-box{
+  background:#f8fbff;
+  border-radius:18px;
+  padding:16px;
+  border:1px solid var(--border);
+}
+
+.signature-info{
+  margin-bottom:14px;
+  font-size:14px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+canvas{
+  width:100%;
+  height:220px;
+  background:#fff;
+  border-radius:16px;
+  border:2px dashed #cbd5e1;
+  display:block;
+  touch-action:none;
+}
+
+/* ================= BUTTON ================= */
+
+.btn{
+  width:100%;
+  border:none;
+  outline:none;
+  border-radius:16px;
+  padding:15px;
+  font-size:15px;
+  font-weight:800;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+}
+
+.btn:active{
+  transform:scale(.98);
+}
+
+.btn-primary{
+  background:
+    linear-gradient(
+      135deg,
+      #0078e7,
+      #005BAC
+    );
+  color:#fff;
+  box-shadow:
+    0 12px 24px rgba(0,91,172,.25);
+}
+
+.btn-danger{
+  background:#fee2e2;
+  color:#b91c1c;
+  margin-top:14px;
+}
+
+.btn-download{
+  display:block;
+  text-decoration:none;
+  text-align:center;
+  background:
+    linear-gradient(
+      135deg,
+      #22c55e,
+      #16a34a
+    );
+  color:#fff;
+  box-shadow:
+    0 10px 22px rgba(34,197,94,.25);
+}
+
+/* ================= LOADING BUTTON ================= */
+
+.spinner{
+  width:18px;
+  height:18px;
+  border:3px solid rgba(255,255,255,.35);
+  border-top:3px solid #fff;
+  border-radius:50%;
+  display:inline-block;
+  vertical-align:middle;
+  margin-right:8px;
+  animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+/* ================= POPUP ================= */
+
+.popup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  backdrop-filter:blur(5px);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  padding:18px;
+}
+
+.popup-content{
+  width:100%;
+  max-width:380px;
+  background:#fff;
+  border-radius:28px;
+  padding:30px 24px;
+  text-align:center;
+  animation:popupShow .25s ease;
+}
+
+@keyframes popupShow{
+  from{
+    opacity:0;
+    transform:translateY(16px) scale(.96);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
+
+.popup-icon{
+  width:82px;
+  height:82px;
+  border-radius:50%;
+  background:#eafaf3;
+  color:#10b981;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:40px;
+  margin:auto auto 18px;
+}
+
+.popup-content h3{
+  font-size:24px;
+  color:#005BAC;
+  margin-bottom:10px;
+}
+
+.popup-content p{
+  color:#6b7280;
+  font-size:14px;
+  line-height:1.7;
+  margin-bottom:24px;
+}
+
+/* ================= UTIL ================= */
+
+.hidden{
+  display:none !important;
+}
+
+.empty{
+  color:#6b7280;
+  font-style:italic;
+}
+
+.debug{
+  margin-top:14px;
+  text-align:center;
+  font-size:12px;
+  color:#94a3b8;
+  word-break:break-word;
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:768px){
+
+  body{
+    background:
+      linear-gradient(
+        180deg,
+        #005BAC 0px,
+        #005BAC 210px,
+        #f3f8ff 210px,
+        #f3f8ff 100%
+      );
+  }
+
+  .header{
+    padding:24px 16px 22px;
+  }
+
+  .logo-wrap{
+    width:72px;
+    height:72px;
+    border-radius:20px;
+  }
+
+  .logo-wrap img{
+    width:48px;
+    height:48px;
+  }
+
+  .header h1{
+    font-size:24px;
+  }
+
+  .header p{
+    font-size:13px;
+  }
+
+  .container{
+    padding:0 12px 30px;
+  }
+
+  .card{
+    border-radius:18px;
+    padding:18px;
+  }
+
+  .info-grid{
+    grid-template-columns:1fr;
+  }
+
+  .perangkat-grid{
+    grid-template-columns:1fr;
+  }
+
+  .card-title h2{
+    font-size:16px;
+  }
+
+  canvas{
+    height:180px;
+  }
+
+  .btn{
+    font-size:15px;
+    padding:14px;
+  }
+
+}
+
+</style>
 </head>
 <body>
-  <div class="header">Approval Koordinator</div>
 
-  <div class="container">
-    <div class="card">
-      <div id="statusBox" class="status loading">Memuat data...</div>
-      <div class="debug">ID Link: <span id="debugId"></span></div>
+<!-- ================= HEADER ================= -->
+
+<div class="header">
+
+  <div class="logo-wrap">
+    <!-- GANTI logo_tj.png dengan logo kamu -->
+    <img src="logo_tj.png" alt="Logo">
+  </div>
+
+  <h1>Approval Koordinator</h1>
+
+  <p>
+    Persetujuan Berita Acara Pekerjaan
+  </p>
+
+</div>
+
+<!-- ================= CONTENT ================= -->
+
+<div class="container">
+
+  <!-- STATUS -->
+  <div class="card">
+
+    <div id="statusBox"
+      class="status-box status-loading">
+      Memuat data...
     </div>
 
-    <div class="card">
-      <div class="title">Informasi</div>
-      <div id="data" class="empty">Memuat data...</div>
+    <div class="debug">
+      ID Approval:
+      <span id="debugId"></span>
     </div>
 
-    <div class="card">
-      <div class="title">Detail Perangkat</div>
-      <div id="perangkatList" class="empty">Memuat data...</div>
+  </div>
+
+  <!-- INFORMASI -->
+  <div class="card">
+
+    <div class="card-title">
+      <div class="card-icon">📄</div>
+      <h2>Informasi Pekerjaan</h2>
     </div>
 
-    <div class="card hidden" id="approveCard">
-      <div class="title">Tanda Tangan Koordinator</div>
+    <div id="infoGrid" class="info-grid">
+      <div class="empty">Memuat data...</div>
+    </div>
+
+  </div>
+
+  <!-- PERANGKAT -->
+  <div class="card">
+
+    <div class="card-title">
+      <div class="card-icon">🧩</div>
+      <h2>Detail Perangkat</h2>
+    </div>
+
+    <div id="perangkatList">
+      <div class="empty">Memuat data...</div>
+    </div>
+
+  </div>
+
+  <!-- APPROVE -->
+  <div class="card hidden" id="approveCard">
+
+    <div class="card-title">
+      <div class="card-icon">✍️</div>
+      <h2>Tanda Tangan Approval</h2>
+    </div>
+
+    <div class="signature-box">
+
+      <div class="signature-info">
+        Silakan tanda tangan pada area di bawah
+        untuk melakukan approval berita acara.
+      </div>
+
       <canvas id="ttd"></canvas>
-      <button type="button" class="btn-danger" id="clearBtn">Hapus TTD</button>
-      <br /><br />
-      <button type="button" id="approveBtn">Approve</button>
+
+      <button
+        class="btn btn-danger"
+        id="clearBtn">
+        Hapus Tanda Tangan
+      </button>
+
+      <br><br>
+
+      <button
+        class="btn btn-primary"
+        id="approveBtn">
+        Approve Sekarang
+      </button>
+
     </div>
 
-    <div class="card hidden" id="downloadCard">
-      <div class="title">Dokumen PDF</div>
-      <a id="downloadPdfBtn" class="btn-link btn-download" href="#" target="_blank">
-        Download PDF
-      </a>
-    </div>
   </div>
 
-  <!-- Popup -->
-  <div id="popup" class="popup-overlay">
-    <div class="popup-box">
-      <h3>✅ Berhasil</h3>
-      <p>Approval berhasil disimpan</p>
-      <button type="button" id="popupOkBtn">OK</button>
+  <!-- DOWNLOAD -->
+  <div class="card hidden" id="downloadCard">
+
+    <div class="card-title">
+      <div class="card-icon">📄</div>
+      <h2>Dokumen PDF</h2>
     </div>
+
+    <a
+      href="#"
+      target="_blank"
+      id="downloadPdfBtn"
+      class="btn btn-download">
+      Download PDF
+    </a>
+
   </div>
 
-  <script>
-    // =========================================
-    // KONFIGURASI
-    // =========================================
-    const SUBMIT_ID =
-      new URLSearchParams(window.location.search).get("id") || "";
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyWVMlkJcr72UiJtuk6_rPzf3FvWRQ9sTarRbiDKqUkc8pKRcJSJl08EHkhTxD5QVAErg/exec";
+</div>
 
-    let pad = null;
-    let isSubmitting = false;
-    let currentPdfUrl = "";
+<!-- ================= POPUP ================= -->
 
-    // =========================================
-    // ELEMENT
-    // =========================================
-    const statusBox = document.getElementById("statusBox");
-    const debugId = document.getElementById("debugId");
-    const dataBox = document.getElementById("data");
-    const perangkatList = document.getElementById("perangkatList");
-    const approveCard = document.getElementById("approveCard");
-    const approveBtn = document.getElementById("approveBtn");
-    const clearBtn = document.getElementById("clearBtn");
-    const popup = document.getElementById("popup");
-    const popupOkBtn = document.getElementById("popupOkBtn");
-    const canvas = document.getElementById("ttd");
-    const downloadCard = document.getElementById("downloadCard");
-    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+<div class="popup" id="popup">
 
-    // =========================================
-    // INIT
-    // =========================================
-    window.addEventListener("load", initPage);
-    window.addEventListener("resize", handleResize);
+  <div class="popup-content">
 
-    clearBtn.addEventListener("click", clearTTD);
-    approveBtn.addEventListener("click", approve);
-    popupOkBtn.addEventListener("click", handlePopupOk);
+    <div class="popup-icon">
+      ✓
+    </div>
 
-    function initPage() {
-      console.log("SUBMIT_ID dari URL:", SUBMIT_ID);
-      debugId.textContent = SUBMIT_ID || "(kosong)";
+    <h3>Approval Berhasil</h3>
 
-      if (!isValidId(SUBMIT_ID)) {
-        showError("LINK TIDAK VALID", "❌ ID tidak ditemukan");
-        return;
-      }
+    <p>
+      Approval telah berhasil disimpan.
+      Dokumen PDF sekarang sudah tersedia.
+    </p>
 
-      loadData();
-    }
+    <button
+      class="btn btn-primary"
+      id="popupOkBtn">
+      OK
+    </button>
 
-    // =========================================
-    // VALIDASI
-    // =========================================
-    function isValidId(id) {
-      return id && id !== "undefined" && id !== "null";
-    }
+  </div>
 
-    // =========================================
-    // LOAD DATA
-    // =========================================
-    async function loadData() {
-      try {
-        setStatus("Memuat data...", "loading");
+</div>
 
-        const url = `${WEB_APP_URL}?mode=get&id=${encodeURIComponent(SUBMIT_ID)}`;
-        const response = await fetch(url, { method: "GET" });
+<script>
 
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}`);
-        }
+/* =========================
+   KONFIGURASI
+========================= */
 
-        const result = await response.json();
-        console.log("DATA SERVER:", result);
+const SUBMIT_ID =
+  new URLSearchParams(window.location.search)
+    .get("id") || "";
 
-        renderData(result);
-      } catch (error) {
-        console.error("Gagal ambil data:", error);
-        showError("ERROR", "❌ Gagal mengambil data");
-      }
-    }
+const WEB_APP_URL =
+  "https://script.google.com/macros/s/AKfycbyWVMlkJcr72UiJtuk6_rPzf3FvWRQ9sTarRbiDKqUkc8pKRcJSJl08EHkhTxD5QVAErg/exec";
 
-    // =========================================
-    // CANVAS / SIGNATURE
-    // =========================================
-    function initCanvas() {
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+/* =========================
+   ELEMENT
+========================= */
 
-      canvas.width = canvas.offsetWidth * ratio;
-      canvas.height = canvas.offsetHeight * ratio;
+const statusBox =
+  document.getElementById("statusBox");
 
-      const ctx = canvas.getContext("2d");
-      ctx.scale(ratio, ratio);
+const debugId =
+  document.getElementById("debugId");
 
-      pad = new SignaturePad(canvas, {
-        minWidth: 1,
-        maxWidth: 2.5,
-        penColor: "#000"
-      });
-    }
+const infoGrid =
+  document.getElementById("infoGrid");
 
-    function handleResize() {
-      if (pad && !approveCard.classList.contains("hidden")) {
+const perangkatList =
+  document.getElementById("perangkatList");
+
+const approveCard =
+  document.getElementById("approveCard");
+
+const approveBtn =
+  document.getElementById("approveBtn");
+
+const clearBtn =
+  document.getElementById("clearBtn");
+
+const popup =
+  document.getElementById("popup");
+
+const popupOkBtn =
+  document.getElementById("popupOkBtn");
+
+const canvas =
+  document.getElementById("ttd");
+
+const downloadCard =
+  document.getElementById("downloadCard");
+
+const downloadPdfBtn =
+  document.getElementById("downloadPdfBtn");
+
+/* =========================
+   STATE
+========================= */
+
+let pad = null;
+let isSubmitting = false;
+let currentPdfUrl = "";
+
+/* =========================
+   INIT
+========================= */
+
+window.addEventListener("load", initPage);
+
+window.addEventListener("resize", () => {
+
+  if (pad &&
+      !approveCard.classList.contains("hidden")) {
+
+    resizeCanvas();
+
+  }
+
+});
+
+clearBtn.addEventListener(
+  "click",
+  clearTTD
+);
+
+approveBtn.addEventListener(
+  "click",
+  approve
+);
+
+popupOkBtn.addEventListener(
+  "click",
+  handlePopupOk
+);
+
+function initPage(){
+
+  debugId.textContent =
+    SUBMIT_ID || "(kosong)";
+
+  if(!SUBMIT_ID){
+
+    showError(
+      "LINK TIDAK VALID",
+      "ID approval tidak ditemukan."
+    );
+
+    return;
+  }
+
+  loadData();
+
+}
+
+/* =========================
+   LOAD DATA
+========================= */
+
+async function loadData(){
+
+  try{
+
+    setStatus(
+      "Memuat data...",
+      "status-loading"
+    );
+
+    const response =
+      await fetch(
+        `${WEB_APP_URL}?mode=get&id=${encodeURIComponent(SUBMIT_ID)}`
+      );
+
+    const result =
+      await response.json();
+
+    renderData(result);
+
+  }catch(err){
+
+    console.error(err);
+
+    showError(
+      "ERROR",
+      "Gagal mengambil data."
+    );
+
+  }
+
+}
+
+/* =========================
+   RENDER DATA
+========================= */
+
+function renderData(res){
+
+  if(!res || res.status === "error"){
+
+    showError(
+      "DATA TIDAK DITEMUKAN",
+      res?.message || "Data tidak ditemukan."
+    );
+
+    return;
+
+  }
+
+  infoGrid.innerHTML = `
+
+    ${createInfoItem("🎫 Nomor Tiket", safe(res.tiket))}
+    ${createInfoItem("👷 Engineer", safe(res.engineer))}
+    ${createInfoItem("👨‍💼 Koordinator", safe(res.koordinator))}
+    ${createInfoItem("🚌 Koridor", safe(res.koridor))}
+    ${createInfoItem("📍 Halte", safe(res.halte))}
+    ${createInfoItem("🛠 Kegiatan", safe(res.kegiatan))}
+    ${createInfoItem("📅 Tanggal", safe(res.tanggal))}
+    ${createInfoItem("🆔 ID Approval", safe(res.id))}
+
+  `;
+
+  renderPerangkat(
+    res.perangkat || []
+  );
+
+  const currentStatus =
+    String(res.status || "")
+      .toUpperCase();
+
+  currentPdfUrl =
+    safeUrl(
+      res.pdf ||
+      res.pdf_url ||
+      ""
+    );
+
+  if(currentStatus === "APPROVED"){
+
+    setStatus(
+      "APPROVED",
+      "status-approved"
+    );
+
+    approveCard.classList.add("hidden");
+
+    renderPdfButton(currentPdfUrl);
+
+  }else{
+
+    setStatus(
+      "MENUNGGU APPROVAL",
+      "status-pending"
+    );
+
+    approveCard.classList.remove("hidden");
+
+    downloadCard.classList.add("hidden");
+
+    setTimeout(() => {
+
+      if(!pad){
+
+        initCanvas();
+
+      }else{
+
         resizeCanvas();
-      }
-    }
 
-    function resizeCanvas() {
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      const oldData = pad && !pad.isEmpty() ? pad.toData() : null;
-
-      canvas.width = canvas.offsetWidth * ratio;
-      canvas.height = canvas.offsetHeight * ratio;
-
-      const ctx = canvas.getContext("2d");
-      ctx.scale(ratio, ratio);
-
-      if (pad) {
-        pad.clear();
-        if (oldData) {
-          pad.fromData(oldData);
-        }
-      }
-    }
-
-    function clearTTD() {
-      if (pad) pad.clear();
-    }
-
-    // =========================================
-    // RENDER DATA
-    // =========================================
-    function renderData(res) {
-      if (!res || res.status === "error") {
-        showError("DATA TIDAK DITEMUKAN", `❌ ${safe(res?.message, "Data tidak ditemukan")}`);
-        return;
       }
 
-      dataBox.innerHTML = `
-        <div class="info-item"><b>ID:</b> ${safe(res.id)}</div>
-        <div class="info-item"><b>Nomor Tiket:</b> ${safe(res.tiket)}</div>
-        <div class="info-item"><b>Engineer:</b> ${safe(res.engineer)}</div>
-        <div class="info-item"><b>Koordinator:</b> ${safe(res.koordinator)}</div>
-        <div class="info-item"><b>Koridor:</b> ${safe(res.koridor)}</div>
-        <div class="info-item"><b>Halte:</b> ${safe(res.halte)}</div>
-        <div class="info-item"><b>Kegiatan:</b> ${safe(res.kegiatan)}</div>
-      `;
+    },150);
 
-      renderPerangkat(res.perangkat || []);
+  }
 
-      const currentStatus = String(res.status || "").toUpperCase();
-      currentPdfUrl = safeUrl(res.pdf_url);
+}
 
-      if (currentStatus === "APPROVED") {
-        setStatus("APPROVED", "approved");
-        approveCard.classList.add("hidden");
-        renderPdfButton(currentPdfUrl);
-      } else {
-        setStatus("PENDING", "pending");
-        approveCard.classList.remove("hidden");
-        downloadCard.classList.add("hidden");
+function createInfoItem(label, value){
 
-        setTimeout(() => {
-          if (!pad) {
-            initCanvas();
-          } else {
-            resizeCanvas();
-          }
-        }, 150);
-      }
-    }
+  return `
+    <div class="info-item">
 
-    function renderPerangkat(items) {
-      if (!Array.isArray(items) || items.length === 0) {
-        perangkatList.innerHTML = `<div class="empty">Tidak ada data perangkat.</div>`;
-        return;
-      }
+      <div class="info-label">
+        ${label}
+      </div>
 
-      perangkatList.innerHTML = items.map((item, index) => `
-        <div class="perangkat">
-          <b>Perangkat #${index + 1}</b><br>
-          ${safe(item.nama)}<br>
-          ${safe(item.merk)}<br>
-          SN: ${safe(item.sn)}<br>
-          Kondisi: ${safe(item.kondisi)}
+      <div class="info-value">
+        ${value}
+      </div>
+
+    </div>
+  `;
+
+}
+
+function renderPerangkat(items){
+
+  if(!Array.isArray(items) || !items.length){
+
+    perangkatList.innerHTML =
+      `<div class="empty">Tidak ada data perangkat.</div>`;
+
+    return;
+
+  }
+
+  perangkatList.innerHTML =
+    items.map((item,index) => `
+
+      <div class="perangkat">
+
+        <div class="perangkat-head">
+
+          <div class="perangkat-title">
+            Perangkat
+          </div>
+
+          <div class="perangkat-badge">
+            #${index + 1}
+          </div>
+
         </div>
-      `).join("");
+
+        <div class="perangkat-grid">
+
+          <div class="perangkat-item">
+            <div class="perangkat-label">
+              Nama Perangkat
+            </div>
+            <div class="perangkat-value">
+              ${safe(item.nama)}
+            </div>
+          </div>
+
+          <div class="perangkat-item">
+            <div class="perangkat-label">
+              Merk & Model
+            </div>
+            <div class="perangkat-value">
+              ${safe(item.merk)}
+            </div>
+          </div>
+
+          <div class="perangkat-item">
+            <div class="perangkat-label">
+              Serial Number
+            </div>
+            <div class="perangkat-value">
+              ${safe(item.sn)}
+            </div>
+          </div>
+
+          <div class="perangkat-item">
+            <div class="perangkat-label">
+              Kondisi
+            </div>
+            <div class="perangkat-value">
+              ${safe(item.kondisi)}
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    `).join("");
+
+}
+
+/* =========================
+   CANVAS
+========================= */
+
+function initCanvas(){
+
+  resizeCanvas();
+
+  pad = new SignaturePad(canvas,{
+    minWidth:1,
+    maxWidth:2.5,
+    penColor:"#000"
+  });
+
+}
+
+function resizeCanvas(){
+
+  const ratio =
+    Math.max(
+      window.devicePixelRatio || 1,
+      1
+    );
+
+  const oldData =
+    pad && !pad.isEmpty()
+      ? pad.toData()
+      : null;
+
+  canvas.width =
+    canvas.offsetWidth * ratio;
+
+  canvas.height =
+    canvas.offsetHeight * ratio;
+
+  canvas
+    .getContext("2d")
+    .scale(ratio,ratio);
+
+  if(pad){
+
+    pad.clear();
+
+    if(oldData){
+
+      pad.fromData(oldData);
+
     }
 
-    function renderPdfButton(pdfUrl) {
-      if (!pdfUrl) {
-        downloadCard.classList.add("hidden");
-        return;
-      }
+  }
 
-      downloadPdfBtn.href = pdfUrl;
-      downloadCard.classList.remove("hidden");
-    }
+}
 
-    // =========================================
-    // APPROVE
-    // =========================================
-    async function approve() {
-      if (isSubmitting) return;
+function clearTTD(){
 
-      if (!pad || pad.isEmpty()) {
-        alert("TTD belum diisi!");
-        return;
-      }
+  if(pad){
 
-      try {
-        isSubmitting = true;
+    pad.clear();
 
-        // ===== UI LOADING =====
-        approveBtn.disabled = true;
-        approveBtn.innerHTML = `
-          <span class="spinner"></span>
-          <span class="loading-dots">Memproses</span>
-        `;
+  }
 
-        setStatus("Memproses approval...", "loading");
+}
 
-        const ttd = pad.toDataURL("image/png");
+/* =========================
+   APPROVE
+========================= */
 
-        const response = await fetch(WEB_APP_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8"
+async function approve(){
+
+  if(isSubmitting) return;
+
+  if(!pad || pad.isEmpty()){
+
+    alert(
+      "Silakan isi tanda tangan terlebih dahulu."
+    );
+
+    return;
+
+  }
+
+  try{
+
+    isSubmitting = true;
+
+    approveBtn.disabled = true;
+
+    approveBtn.innerHTML = `
+      <span class="spinner"></span>
+      Memproses Approval...
+    `;
+
+    setStatus(
+      "Memproses approval...",
+      "status-loading"
+    );
+
+    const ttd =
+      pad.toDataURL("image/png");
+
+    const response =
+      await fetch(
+        WEB_APP_URL,
+        {
+          method:"POST",
+          headers:{
+            "Content-Type":
+              "text/plain;charset=utf-8"
           },
-          body: JSON.stringify({
-            mode: "approve",
-            id: SUBMIT_ID,
+          body:JSON.stringify({
+            mode:"approve",
+            id:SUBMIT_ID,
             ttd
           })
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}`);
         }
+      );
 
-        const result = await response.json();
-        console.log("RESPON APPROVE:", result);
+    const result =
+      await response.json();
 
-        if (result.status !== "success") {
-          throw new Error(result.message || "Gagal approve");
-        }
+    if(result.status !== "success"){
 
-        currentPdfUrl = safeUrl(result.pdf || result.pdf_url || "");
-
-        // ===== UPDATE UI =====
-        setStatus("APPROVED", "approved");
-        approveCard.classList.add("hidden");
-        renderPdfButton(currentPdfUrl);
-
-        showPopup();
-
-      } catch (error) {
-        console.error("Approve error:", error);
-        alert("Gagal approve: " + error.message);
-      } finally {
-        isSubmitting = false;
-
-        // BALIKIN BUTTON NORMAL
-        approveBtn.disabled = false;
-        approveBtn.innerHTML = "Approve";
-      }
-    }
-
-    // =========================================
-    // POPUP
-    // =========================================
-    function showPopup() {
-      popup.style.display = "flex";
-    }
-
-    async function handlePopupOk() {
-      popup.style.display = "none";
-
-      // refresh data dari server supaya pdf_url terbaru langsung muncul
-      await loadData();
-
-      // scroll ke tombol PDF kalau sudah ada
-      if (!downloadCard.classList.contains("hidden")) {
-        downloadCard.scrollIntoView({
-          behavior: "smooth",
-          block: "center"
-        });
-      }
-    }
-
-    // =========================================
-    // HELPER
-    // =========================================
-    function setStatus(text, className) {
-      statusBox.textContent = text;
-      statusBox.className = `status ${className}`;
-    }
-
-    function showError(statusText, htmlMessage) {
-      dataBox.innerHTML = htmlMessage;
-      perangkatList.innerHTML = "";
-      setStatus(statusText, "error");
-      approveCard.classList.add("hidden");
-      downloadCard.classList.add("hidden");
-    }
-
-    function safe(value, fallback = "-") {
-      return value !== undefined && value !== null && value !== "" ? value : fallback;
-    }
-
-    function safeUrl(url) {
-      if (!url || url === "-") return "";
-      return String(url).trim();
-    }
-
-    // DETEKSI BROWSER DALAM APLIKASI
-    const ua = navigator.userAgent || "";
-
-    const isInAppBrowser =
-      /FBAN|FBAV|Instagram|Line|WhatsApp/i.test(ua);
-
-    if (isInAppBrowser) {
-
-      alert(
-        "Untuk hasil terbaik silakan buka link menggunakan Chrome atau Safari."
+      throw new Error(
+        result.message ||
+        "Approve gagal"
       );
 
     }
-  </script>
+
+    currentPdfUrl =
+      safeUrl(
+        result.pdf ||
+        result.pdf_url ||
+        ""
+      );
+
+    setStatus(
+      "APPROVED",
+      "status-approved"
+    );
+
+    approveCard.classList.add("hidden");
+
+    renderPdfButton(currentPdfUrl);
+
+    showPopup();
+
+  }catch(err){
+
+    console.error(err);
+
+    alert(
+      "Gagal approve:\n" +
+      err.message
+    );
+
+    setStatus(
+      "ERROR",
+      "status-error"
+    );
+
+  }finally{
+
+    isSubmitting = false;
+
+    approveBtn.disabled = false;
+
+    approveBtn.innerHTML =
+      "Approve Sekarang";
+
+  }
+
+}
+
+/* =========================
+   PDF
+========================= */
+
+function renderPdfButton(url){
+
+  if(!url){
+
+    downloadCard.classList.add("hidden");
+
+    return;
+
+  }
+
+  downloadPdfBtn.href = url;
+
+  downloadCard.classList.remove("hidden");
+
+}
+
+/* =========================
+   POPUP
+========================= */
+
+function showPopup(){
+
+  popup.style.display = "flex";
+
+}
+
+async function handlePopupOk(){
+
+  popup.style.display = "none";
+
+  await loadData();
+
+  if(!downloadCard.classList.contains("hidden")){
+
+    downloadCard.scrollIntoView({
+      behavior:"smooth",
+      block:"center"
+    });
+
+  }
+
+}
+
+/* =========================
+   STATUS
+========================= */
+
+function setStatus(text, className){
+
+  statusBox.textContent = text;
+
+  statusBox.className =
+    `status-box ${className}`;
+
+}
+
+function showError(statusText, message){
+
+  setStatus(
+    statusText,
+    "status-error"
+  );
+
+  infoGrid.innerHTML = `
+    <div class="empty">
+      ${message}
+    </div>
+  `;
+
+  perangkatList.innerHTML = "";
+
+  approveCard.classList.add("hidden");
+
+  downloadCard.classList.add("hidden");
+
+}
+
+/* =========================
+   HELPER
+========================= */
+
+function safe(value,fallback="-"){
+
+  return value !== undefined &&
+         value !== null &&
+         value !== ""
+         ? value
+         : fallback;
+
+}
+
+function safeUrl(url){
+
+  if(!url || url === "-"){
+
+    return "";
+
+  }
+
+  return String(url).trim();
+
+}
+
+/* =========================
+   IN-APP BROWSER WARNING
+========================= */
+
+const ua =
+  navigator.userAgent || "";
+
+if(
+  /FBAN|FBAV|Instagram|Line|WhatsApp/i
+    .test(ua)
+){
+
+  alert(
+    "Untuk hasil terbaik, buka halaman ini menggunakan Chrome atau Safari."
+  );
+
+}
+
+</script>
 </body>
 </html>
