@@ -400,7 +400,7 @@
 <body>
 
   <div class="header">
-    <img src="logo_tj.png" alt="Logo">
+    <img src="logo.png" alt="Logo">
     <h1>Berita Acara Pekerjaan</h1>
   </div>
 
@@ -816,6 +816,12 @@
       document.getElementById("previewData").innerHTML = preview;
     
       document.getElementById("successModal").style.display = "flex";
+      
+      document.getElementById("btnOpenLink").style.display = "block";
+      
+      document.getElementById("btnWA").style.display = "block";
+      
+      
     }
     
     function showError(message) {
@@ -830,21 +836,34 @@
     function closeModal() {
       document.getElementById("successModal").style.display = "none";
     
-      // reset form input
-      document.querySelectorAll("input, textarea").forEach(el => el.value = "");
+      // ❗ JANGAN AUTO RESET FORM kalau belum yakin submit sukses final
+      // reset hanya jika memang success + user sudah lihat link
+      const shouldReset = confirm("Tutup popup dan reset form?");
+    
+      if (!shouldReset) {
+        return;
+      }
+    
+      // ================= RESET INPUT =================
+      document.querySelectorAll("input, textarea").forEach(el => {
+        el.value = "";
+      });
     
       document.getElementById("koridor").value = "";
       document.getElementById("halte").innerHTML = '<option value="">Pilih Halte</option>';
     
-      // reset perangkat
+      // ================= RESET PERANGKAT =================
       document.getElementById("perangkatContainer").innerHTML = "";
       tambahPerangkat();
     
-      // reset TTD
+      // ================= RESET TTD =================
       if (ttdEngineerPad) ttdEngineerPad.clear();
       if (ttdPetugasPad) ttdPetugasPad.clear();
     
-      // scroll ke atas biar enak
+      // ================= RESET STATE =================
+      latestApprovalLink = "";
+    
+      // ================= SCROLL TOP =================
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
