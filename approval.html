@@ -831,7 +831,12 @@ function renderData(res){
     ${createInfoItem("🚌 Koridor", safe(res.koridor))}
     ${createInfoItem("📍 Halte", safe(res.halte))}
     ${createInfoItem("🛠 Kegiatan", safe(res.kegiatan))}
-    ${createInfoItem("📅 Tanggal", safe(res.tanggal))}
+    ${createInfoItem(
+      "📅 Tanggal",
+      res.tanggal
+        ? formatTanggalIndonesia(res.tanggal)
+        : "-"
+    )}
     ${createInfoItem("🆔 ID Approval", safe(res.id))}
 
   `;
@@ -1282,6 +1287,21 @@ if(
 
 }
 
+function formatTanggalIndonesia(dateString) {
+
+  const d = new Date(dateString);
+
+  const tanggal =
+    String(d.getDate()).padStart(2, "0");
+
+  const bulan =
+    String(d.getMonth() + 1).padStart(2, "0");
+
+  const tahun =
+    d.getFullYear();
+
+  return `${tanggal}-${bulan}-${tahun}`;
+}
 </script>
 </body>
 </html>
