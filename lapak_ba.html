@@ -230,33 +230,62 @@
       color: #005BAC;
     }
     
-    #previewData{
+   #previewData{
+      text-align: left;
       font-size: 14px;
       color: #374151;
       line-height: 1.6;
+      margin-top: 10px;
     }
     
-    #previewData p{
-      margin: 8px 0;
+    .preview-card{
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      border-radius: 16px;
+      padding: 16px;
     }
     
-    #previewData a{
-      display: inline-block;
-      margin-top: 8px;
-      max-width: 100%;
-      overflow-wrap: break-word;
-      word-break: break-word;
+    .preview-row{
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 10px 0;
+      border-bottom: 1px dashed #dbeafe;
+    }
+    
+    .preview-row:last-child{
+      border-bottom: none;
+    }
+    
+    .preview-label{
+      min-width: 110px;
+      font-weight: 700;
       color: #005BAC;
-      text-decoration: none;
-      font-weight: 600;
-      background: #eff6ff;
-      padding: 10px 14px;
-      border-radius: 12px;
-      font-size: 13px;
     }
     
-    #previewData a:hover{
-      background: #dbeafe;
+    .preview-value{
+      flex: 1;
+      text-align: right;
+      color: #111827;
+      word-break: break-word;
+    }
+    
+    .preview-link{
+      display: block;
+      margin-top: 16px;
+      text-align: center;
+      background: #005BAC;
+      color: #fff !important;
+      text-decoration: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      transition: .2s;
+    }
+    
+    .preview-link:hover{
+      opacity: .92;
+      transform: translateY(-1px);
     }
     
     .modal-actions{
@@ -286,8 +315,22 @@
     }
     
     .btn-wa{
-      background: #22c55e;
-      color: #fff;
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      background:#25D366;
+      color:#fff;
+      font-size:16px;
+      font-weight:600;
+      cursor:pointer;
+      margin-top:10px;
+      transition:.2s;
+    }
+    
+    .btn-wa:hover{
+      opacity:.9;
+      transform:translateY(-1px);
     }
     
     .btn-close{
@@ -522,7 +565,6 @@
       <div id="previewData"></div>
 
       <div class="modal-actions">
-        <button class="btn-link" id="btnOpenLink" style="display:none;">Buka Link Approval</button>
         <button class="btn-wa" id="btnWA" style="display:none;">Kirim via WhatsApp</button>
         <button class="btn-close" onclick="closeModal()">Tutup</button>
       </div>
@@ -789,48 +831,88 @@
       }
     }
     
-    function showSuccess(data, link){
+   function showSuccess(data, link){
 
-      const preview = `
-        <p><b>📅 Tanggal</b><br>${data.tanggal}</p>
+    const preview = `
     
-        <p><b>🎫 Nomor Tiket</b><br>${data.tiket}</p>
-    
-        <p><b>👷 Engineer</b><br>${data.engineer}</p>
-    
-        <p><b>🚌 Lokasi</b><br>
-        Koridor ${data.koridor} - ${data.halte}</p>
-    
-        <p><b>🧩 Jumlah Perangkat</b><br>
-        ${data.perangkat.length} perangkat</p>
-    
-        <p><b>🔗 Link Approval</b></p>
-    
-        <a href="${link}" target="_blank">
-          Buka Halaman Approval
+      <div class="preview-card">
+  
+        <div class="preview-row">
+          <div class="preview-label">📅 Tanggal</div>
+          <div class="preview-value">${data.tanggal}</div>
+        </div>
+  
+        <div class="preview-row">
+          <div class="preview-label">🎫 Tiket</div>
+          <div class="preview-value">${data.tiket}</div>
+        </div>
+  
+        <div class="preview-row">
+          <div class="preview-label">👷 Engineer</div>
+          <div class="preview-value">${data.engineer}</div>
+        </div>
+  
+        <div class="preview-row">
+          <div class="preview-label">🚌 Lokasi</div>
+          <div class="preview-value">
+            Koridor ${data.koridor}<br>
+            ${data.halte}
+          </div>
+        </div>
+  
+        <div class="preview-row">
+          <div class="preview-label">🧩 Perangkat</div>
+          <div class="preview-value">
+            ${data.perangkat.length} perangkat
+          </div>
+        </div>
+  
+        <div class="preview-row">
+          <div class="preview-label">👨‍💼 Koordinator</div>
+          <div class="preview-value">${data.koordinator}</div>
+        </div>
+  
+        <a class="preview-link"
+           href="${link}"
+           target="_blank">
+           🔗 Buka Halaman Approval
         </a>
-      `;
-    
-      document.getElementById("modalTitle").innerText = "✅ Berhasil Disubmit";
-    
-      document.getElementById("previewData").innerHTML = preview;
-    
-      document.getElementById("successModal").style.display = "flex";
-      
-      document.getElementById("btnOpenLink").style.display = "block";
-      
-      document.getElementById("btnWA").style.display = "block";
-      
-      
-    }
+  
+      </div>
+    `;
+  
+    document.getElementById("modalTitle").innerText =
+      "✅ Berhasil Disubmit";
+  
+    document.getElementById("previewData").innerHTML =
+      preview;
+  
+    document.getElementById("successModal").style.display =
+      "flex";
+  
+    const btnWA = document.getElementById("btnWA");
+  
+    btnWA.style.display = "block";
+  
+    btnWA.onclick = () => {
+      openWhatsApp(data, link);
+    };
+  
+  }
     
     function showError(message) {
-      document.getElementById("modalTitle").innerText = "❌ Gagal!";
-      document.getElementById("previewData").innerHTML = `<p style="text-align:center;">${message}</p>`;
-      document.getElementById("successModal").style.display = "flex";
 
-      document.getElementById("btnOpenLink").style.display = "none";
-      document.getElementById("btnWA").style.display = "none";
+      document.getElementById("modalTitle").innerText =
+        "❌ Gagal!";
+    
+      document.getElementById("previewData").innerHTML =
+        `<p style="text-align:center;">${message}</p>`;
+    
+      document.getElementById("successModal").style.display =
+        "flex";
+    
+      document.getElementById("btnWA").style.display =
+        "none";
     }
     
     function closeModal() {
@@ -867,9 +949,35 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    function openWhatsApp(link) {
-      const text = encodeURIComponent("Halo, mohon approval Berita Acara berikut:\n\n" + link);
-      window.open("https://wa.me/?text=" + text, "_blank");
+    function openWhatsApp(data, link) {
+
+  const message = `
+    *PERMOHONAN APPROVAL BERITA ACARA*
+    
+    Halo ${data.koordinator},
+    
+    Mohon melakukan approval untuk Berita Acara berikut:
+    
+    ━━━━━━━━━━━━━━━
+    📅 Tanggal : ${data.tanggal}
+    🎫 Tiket : ${data.tiket}
+    👷 Engineer : ${data.engineer}
+    🚌 Lokasi : Koridor ${data.koridor} - ${data.halte}
+    🧩 Perangkat : ${data.perangkat.length} perangkat
+    ━━━━━━━━━━━━━━━
+    
+    Silakan buka link berikut:
+    ${link}
+    
+    Terima kasih.
+      `;
+    
+      const text = encodeURIComponent(message);
+    
+      window.open(
+        "https://wa.me/?text=" + text,
+        "_blank"
+      );
     }
   </script>
   <script>
