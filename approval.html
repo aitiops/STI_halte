@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Approval Koordinator</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #005bac;
+      --primary-dark: #004785;
+      --bg: #f4f7fb;
+      --danger: #ff4d4f;
+      --success-bg: #d4edda;
+      --success-text: #155724;
+      --warning-bg: #fff3cd;
+      --warning-text: #856404;
+      --error-bg: #f8d7da;
+      --error-text: #721c24;
+      --loading-bg: #e9f2ff;
+      --loading-text: #0b4f9c;
+      --text: #222;
+      --muted: #666;
+      --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      padding: 18px 16px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .container {
+      padding: 16px;
+      max-width: 720px;
+      margin: auto;
+    }
+
+    .card {
+      background: #fff;
+      padding: 16px;
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .title {
+      font-weight: 700;
+      margin-bottom: 12px;
+      border-left: 4px solid var(--primary);
+      padding-left: 10px;
+      font-size: 16px;
+    }
+
+    .info-item {
+      margin-bottom: 8px;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .perangkat {
+      border: 1px solid #eee;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fafafa;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .perangkat:last-child {
+      margin-bottom: 0;
+    }
+
+    canvas {
+      width: 100%;
+      height: 220px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      touch-action: none;
+      background: #fff;
+      display: block;
+    }
+
+    button,
+    .btn-link {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    button:hover,
+    .btn-link:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      margin-top: 12px;
+    }
+
+    .btn-download {
+      margin-top: 12px;
+      background: #16a34a;
+    }
+
+    .status {
+      text-align: center;
+      font-weight: 700;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    .pending {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+    }
+
+    .approved {
+      background: var(--success-bg);
+      color: var(--success-text);
+    }
+
+    .error {
+      background: var(--error-bg);
+      color: var(--error-text);
+    }
+
+    .loading {
+      background: var(--loading-bg);
+      color: var(--loading-text);
+    }
+
+    .debug {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+      word-break: break-word;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      padding: 16px;
+    }
+
+    .popup-box {
+      background: #fff;
+      padding: 24px;
+      border-radius: 14px;
+      text-align: center;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      animation: popupFade 0.2s ease;
+    }
+
+    .popup-box h3 {
+      margin: 0 0 10px;
+    }
+
+    .popup-box p {
+      margin: 0 0 18px;
+      color: var(--muted);
+    }
+
+    @keyframes popupFade {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* ===== LOADING SPINNER ===== */
+    .spinner {
+      width: 22px;
+      height: 22px;
+      border: 3px solid rgba(255,255,255,0.4);
+      border-top: 3px solid #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* loading text anim */
+    .loading-dots::after {
+      content: "";
+      animation: dots 1.2s infinite;
+    }
+
+    @keyframes dots {
+      0% { content: ""; }
+      33% { content: "."; }
+      66% { content: ".."; }
+      100% { content: "..."; }
+    }
+  </style>
+
+</head>
+<body>
+  <div class="header">Approval Koordinator</div>
+
+  <div class="container">
+    <div class="card">
+      <div id="statusBox" class="status loading">Memuat data...</div>
+      <div class="debug">ID Link: <span id="debugId"></span></div>
+    </div>
+
+    <div class="card">
+      <div class="title">Informasi</div>
+      <div id="data" class="empty">Memuat data...</div>
+    </div>
+
+    <div class="card">
+      <div class="title">Detail Perangkat</div>
+      <div id="perangkatList" class="empty">Memuat data...</div>
+    </div>
+
+    <div class="card hidden" id="approveCard">
+      <div class="title">Tanda Tangan Koordinator</div>
+      <canvas id="ttd"></canvas>
+      <button type="button" class="btn-danger" id="clearBtn">Hapus TTD</button>
+      <br /><br />
+      <button type="button" id="approveBtn">Approve</button>
+    </div>
+
+    <div class="card hidden" id="downloadCard">
+      <div class="title">Dokumen PDF</div>
+      <a id="downloadPdfBtn" class="btn-link btn-download" href="#" target="_blank">
+        Download PDF
+      </a>
+    </div>
+  </div>
+
+  <!-- Popup -->
+  <div id="popup" class="popup-overlay">
+    <div class="popup-box">
+      <h3>✅ Berhasil</h3>
+      <p>Approval berhasil disimpan</p>
+      <button type="button" id="popupOkBtn">OK</button>
+    </div>
+  </div>
+
+  <script>
+    // =========================================
+    // KONFIGURASI
+    // =========================================
+    const SUBMIT_ID = "<?= id ?>".trim();
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyWVMlkJcr72UiJtuk6_rPzf3FvWRQ9sTarRbiDKqUkc8pKRcJSJl08EHkhTxD5QVAErg/exec";
+
+    let pad = null;
+    let isSubmitting = false;
+    let currentPdfUrl = "";
+
+    // =========================================
+    // ELEMENT
+    // =========================================
+    const statusBox = document.getElementById("statusBox");
+    const debugId = document.getElementById("debugId");
+    const dataBox = document.getElementById("data");
+    const perangkatList = document.getElementById("perangkatList");
+    const approveCard = document.getElementById("approveCard");
+    const approveBtn = document.getElementById("approveBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const popup = document.getElementById("popup");
+    const popupOkBtn = document.getElementById("popupOkBtn");
+    const canvas = document.getElementById("ttd");
+    const downloadCard = document.getElementById("downloadCard");
+    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+
+    // =========================================
+    // INIT
+    // =========================================
+    window.addEventListener("load", initPage);
+    window.addEventListener("resize", handleResize);
+
+    clearBtn.addEventListener("click", clearTTD);
+    approveBtn.addEventListener("click", approve);
+    popupOkBtn.addEventListener("click", handlePopupOk);
+
+    function initPage() {
+      console.log("SUBMIT_ID dari URL:", SUBMIT_ID);
+      debugId.textContent = SUBMIT_ID || "(kosong)";
+
+      if (!isValidId(SUBMIT_ID)) {
+        showError("LINK TIDAK VALID", "❌ ID tidak ditemukan");
+        return;
+      }
+
+      loadData();
+    }
+
+    // =========================================
+    // VALIDASI
+    // =========================================
+    function isValidId(id) {
+      return id && id !== "undefined" && id !== "null";
+    }
+
+    // =========================================
+    // LOAD DATA
+    // =========================================
+    async function loadData() {
+      try {
+        setStatus("Memuat data...", "loading");
+
+        const url = `${WEB_APP_URL}?mode=get&id=${encodeURIComponent(SUBMIT_ID)}`;
+        const response = await fetch(url, { method: "GET" });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log("DATA SERVER:", result);
+
+        renderData(result);
+      } catch (error) {
+        console.error("Gagal ambil data:", error);
+        showError("ERROR", "❌ Gagal mengambil data");
+      }
+    }
+
+    // =========================================
+    // CANVAS / SIGNATURE
+    // =========================================
+    function initCanvas() {
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+
+      canvas.width = canvas.offsetWidth * ratio;
+      canvas.height = canvas.offsetHeight * ratio;
+
+      const ctx = canvas.getContext("2d");
+      ctx.scale(ratio, ratio);
+
+      pad = new SignaturePad(canvas, {
+        minWidth: 1,
+        maxWidth: 2.5,
+        penColor: "#000"
+      });
+    }
+
+    function handleResize() {
+      if (pad && !approveCard.classList.contains("hidden")) {
+        resizeCanvas();
+      }
+    }
+
+    function resizeCanvas() {
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      const oldData = pad && !pad.isEmpty() ? pad.toData() : null;
+
+      canvas.width = canvas.offsetWidth * ratio;
+      canvas.height = canvas.offsetHeight * ratio;
+
+      const ctx = canvas.getContext("2d");
+      ctx.scale(ratio, ratio);
+
+      if (pad) {
+        pad.clear();
+        if (oldData) {
+          pad.fromData(oldData);
+        }
+      }
+    }
+
+    function clearTTD() {
+      if (pad) pad.clear();
+    }
+
+    // =========================================
+    // RENDER DATA
+    // =========================================
+    function renderData(res) {
+      if (!res || res.status === "error") {
+        showError("DATA TIDAK DITEMUKAN", `❌ ${safe(res?.message, "Data tidak ditemukan")}`);
+        return;
+      }
+
+      dataBox.innerHTML = `
+        <div class="info-item"><b>ID:</b> ${safe(res.id)}</div>
+        <div class="info-item"><b>Nomor Tiket:</b> ${safe(res.tiket)}</div>
+        <div class="info-item"><b>Engineer:</b> ${safe(res.engineer)}</div>
+        <div class="info-item"><b>Koordinator:</b> ${safe(res.koordinator)}</div>
+        <div class="info-item"><b>Koridor:</b> ${safe(res.koridor)}</div>
+        <div class="info-item"><b>Halte:</b> ${safe(res.halte)}</div>
+        <div class="info-item"><b>Kegiatan:</b> ${safe(res.kegiatan)}</div>
+      `;
+
+      renderPerangkat(res.perangkat || []);
+
+      const currentStatus = String(res.status || "").toUpperCase();
+      currentPdfUrl = safeUrl(res.pdf_url);
+
+      if (currentStatus === "APPROVED") {
+        setStatus("APPROVED", "approved");
+        approveCard.classList.add("hidden");
+        renderPdfButton(currentPdfUrl);
+      } else {
+        setStatus("PENDING", "pending");
+        approveCard.classList.remove("hidden");
+        downloadCard.classList.add("hidden");
+
+        setTimeout(() => {
+          if (!pad) {
+            initCanvas();
+          } else {
+            resizeCanvas();
+          }
+        }, 150);
+      }
+    }
+
+    function renderPerangkat(items) {
+      if (!Array.isArray(items) || items.length === 0) {
+        perangkatList.innerHTML = `<div class="empty">Tidak ada data perangkat.</div>`;
+        return;
+      }
+
+      perangkatList.innerHTML = items.map((item, index) => `
+        <div class="perangkat">
+          <b>Perangkat #${index + 1}</b><br>
+          ${safe(item.nama)}<br>
+          ${safe(item.merk)}<br>
+          SN: ${safe(item.sn)}<br>
+          Kondisi: ${safe(item.kondisi)}
+        </div>
+      `).join("");
+    }
+
+    function renderPdfButton(pdfUrl) {
+      if (!pdfUrl) {
+        downloadCard.classList.add("hidden");
+        return;
+      }
+
+      downloadPdfBtn.href = pdfUrl;
+      downloadCard.classList.remove("hidden");
+    }
+
+    // =========================================
+    // APPROVE
+    // =========================================
+    async function approve() {
+      if (isSubmitting) return;
+
+      if (!pad || pad.isEmpty()) {
+        alert("TTD belum diisi!");
+        return;
+      }
+
+      try {
+        isSubmitting = true;
+
+        // ===== UI LOADING =====
+        approveBtn.disabled = true;
+        approveBtn.innerHTML = `
+          <span class="spinner"></span>
+          <span class="loading-dots">Memproses</span>
+        `;
+
+        setStatus("Memproses approval...", "loading");
+
+        const ttd = pad.toDataURL("image/png");
+
+        const response = await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({
+            mode: "approve",
+            id: SUBMIT_ID,
+            ttd
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log("RESPON APPROVE:", result);
+
+        if (result.status !== "success") {
+          throw new Error(result.message || "Gagal approve");
+        }
+
+        currentPdfUrl = safeUrl(result.pdf || result.pdf_url || "");
+
+        // ===== UPDATE UI =====
+        setStatus("APPROVED", "approved");
+        approveCard.classList.add("hidden");
+        renderPdfButton(currentPdfUrl);
+
+        showPopup();
+
+      } catch (error) {
+        console.error("Approve error:", error);
+        alert("Gagal approve: " + error.message);
+      } finally {
+        isSubmitting = false;
+
+        // BALIKIN BUTTON NORMAL
+        approveBtn.disabled = false;
+        approveBtn.innerHTML = "Approve";
+      }
+    }
+
+    // =========================================
+    // POPUP
+    // =========================================
+    function showPopup() {
+      popup.style.display = "flex";
+    }
+
+    async function handlePopupOk() {
+      popup.style.display = "none";
+
+      // refresh data dari server supaya pdf_url terbaru langsung muncul
+      await loadData();
+
+      // scroll ke tombol PDF kalau sudah ada
+      if (!downloadCard.classList.contains("hidden")) {
+        downloadCard.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+      }
+    }
+
+    // =========================================
+    // HELPER
+    // =========================================
+    function setStatus(text, className) {
+      statusBox.textContent = text;
+      statusBox.className = `status ${className}`;
+    }
+
+    function showError(statusText, htmlMessage) {
+      dataBox.innerHTML = htmlMessage;
+      perangkatList.innerHTML = "";
+      setStatus(statusText, "error");
+      approveCard.classList.add("hidden");
+      downloadCard.classList.add("hidden");
+    }
+
+    function safe(value, fallback = "-") {
+      return value !== undefined && value !== null && value !== "" ? value : fallback;
+    }
+
+    function safeUrl(url) {
+      if (!url || url === "-") return "";
+      return String(url).trim();
+    }
+
+    // DETEKSI BROWSER DALAM APLIKASI
+    const ua = navigator.userAgent || "";
+
+    const isInAppBrowser =
+      /FBAN|FBAV|Instagram|Line|WhatsApp/i.test(ua);
+
+    if (isInAppBrowser) {
+
+      alert(
+        "Untuk hasil terbaik silakan buka link menggunakan Chrome atau Safari."
+      );
+
+    }
+  </script>
+</body>
+</html>
