@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Engineer - IT Stock Opname</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        // MENGAKTIFKAN ENGINE CLASS-BASED DARK MODE TAILWIND
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease, color 0.3s ease; }
+        
+        /* ========================================================
+           ULTRA FORCE OVERRIDE - MODE GELAP (DARK MODE)
+           ======================================================== */
+        /* 1. Paksa BACKGROUND kotak koridor & kartu jadi Biru Navy Command Center */
+        .dark .accordion-item, 
+        .dark .tj-card,
+        .dark .accordion-header {
+            background-color: #132247 !important;
+            background: #132247 !important;
+            border-color: #1e293b !important;
+            box-shadow: none !important;
+        }
+        .dark .accordion-header:hover { 
+            background-color: #182647 !important; 
+            background: #182647 !important;
+        }
+
+        /* 2. Paksa TULISAN UTAMA (Nama Koridor & Halte) jadi PUTIH TERANG sejak awal */
+        .dark .accordion-header h2, 
+        .dark #dashboardKoridor h2,
+        .dark .accordion-item h2,
+        .dark .accordion-header h2 *,
+        .dark .h-nama { 
+            color: #ffffff !important; 
+        }
+
+        /* 3. Paksa TULISAN SUB-TEXT (Status X / Y Selesai) jadi Abu-abu terang */
+        .dark .accordion-header p, 
+        .dark #dashboardKoridor p,
+        .dark .accordion-item p,
+        .dark .accordion-header p * { 
+            color: #94a3b8 !important; 
+        }
+        .dark .chevron-icon svg { 
+            color: #94a3b8 !important; 
+            stroke: #94a3b8 !important; 
+        }
+        
+        /* 4. Konten baris dalam saat mekar */
+        .dark .accordion-content { background-color: transparent !important; border-color: rgba(30, 41, 59, 0.5) !important; }
+        .dark .halte-row { border-color: rgba(30, 41, 59, 0.4) !important; }
+
+        /* ========================================================
+           ULTRA FORCE OVERRIDE - MODE TERANG (LIGHT MODE)
+           ======================================================== */
+        html:not(.dark) .accordion-item,
+        html:not(.dark) .tj-card,
+        html:not(.dark) .accordion-header {
+            background-color: #ffffff !important;
+            background: #ffffff !important;
+            border-color: #e2e8f0 !important;
+        }
+        html:not(.dark) .accordion-header:hover {
+            background-color: #f8fafc !important;
+            background: #f8fafc !important;
+        }
+        html:not(.dark) .accordion-header h2,
+        html:not(.dark) #dashboardKoridor h2,
+        html:not(.dark) .h-nama {
+            color: #1e293b !important;
+        }
+        html:not(.dark) .accordion-header p,
+        html:not(.dark) #dashboardKoridor p {
+            color: #64748b !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 dark:bg-[#0b1329] dark:text-slate-100 min-h-screen pb-10">
+
+    <div id="loadingOverlay" class="fixed inset-0 flex flex-col items-center justify-center bg-slate-100 dark:bg-[#0b1329] z-[999] loading-overlay">
+        <div class="flex flex-col items-center justify-center transition-all duration-300">
+            <div class="loader border-t-cyan-500 dark:border-t-cyan-400 w-14 h-14 border-4 rounded-full slow-spin"></div> 
+            <p id="loadingStatus" class="text-cyan-600 dark:text-cyan-400 font-black tracking-widest uppercase mt-4 text-[10px] animate-pulse">Sinkronisasi Data Lapangan...</p>
+        </div>
+    </div>
+
+    <nav class="bg-slate-900 border-b border-slate-800 text-white p-4 sticky top-0 z-50 shadow-xl">
+        <div class="container mx-auto flex justify-between items-center max-w-5xl">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-[#0095DA] rounded-xl flex items-center justify-center font-black text-sm shadow-inner">
+                    🛠️
+                </div>
+                <div>
+                    <p class="text-[9px] font-black opacity-60 uppercase tracking-widest leading-none">Transjakarta</p>
+                    <h1 class="font-black text-base tracking-tight uppercase mt-0.5">IT Stock Opname</h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="toggleTheme()" id="themeBtn" class="bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-2 rounded-xl transition-all active:scale-95 text-[10px] font-black tracking-widest uppercase font-mono text-white">
+                    DARK MODE
+                </button>
+                <div class="hidden sm:flex items-center gap-2 bg-white/10 border border-white/10 pl-3 pr-4 py-1.5 rounded-full backdrop-blur-md">
+                    <span id="namaUser" class="text-[11px] font-black uppercase tracking-wider text-slate-100">Engineer</span>
+                </div>
+                <button onclick="showLogoutModal()" class="bg-red-500 hover:bg-red-600 p-2.5 rounded-xl transition-all shadow-lg shadow-red-950/20 active:scale-90">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="p-4 md:p-6 container mx-auto max-w-5xl">
+        
+        <div class="mb-6 px-1">
+            <h2 class="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Daftar Penugasan</h2>
+            <p class="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-tighter">Pemeriksaan Aset Perangkat Halte</p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 mb-6">
+            <div class="bg-white dark:bg-[#132247]/40 p-5 rounded-[2rem] border border-slate-200/60 dark:border-slate-800/60 shadow-sm dark:shadow-lg transition-all">
+                <p class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Total Halte</p>
+                <p id="totalHalte" class="text-2xl font-black text-slate-800 dark:text-white leading-none">0</p>
+            </div>
+            <div class="bg-emerald-50/60 dark:bg-emerald-950/20 p-5 rounded-[2rem] border border-emerald-200/50 dark:border-emerald-500/20 shadow-sm dark:shadow-lg transition-all">
+                <p class="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">Selesai</p>
+                <p id="halteSelesai" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-none">0</p>
+            </div>
+            <div class="bg-[#0095DA] dark:bg-[#0f1a36] p-5 rounded-[2rem] shadow-lg shadow-blue-500/10 text-white flex flex-col justify-between">
+                <p class="text-[9px] font-black opacity-80 uppercase tracking-wider mb-1">Progress</p>
+                <p id="progressVisit" class="text-2xl font-black leading-none">0%</p>
+            </div>
+        </div>
+
+        <div class="mb-6 px-1">
+            <div class="relative group">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-xs opacity-50 group-focus-within:opacity-100 transition-all">
+                    🔍
+                </div>
+                <input type="text" id="searchHalte" oninput="filterHalteManual()" placeholder="Cari nama atau ID halte tugas..." class="w-full p-4 pl-12 bg-white dark:bg-[#132247]/50 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl text-xs font-bold text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#0095DA] focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-950/50 shadow-sm transition-all uppercase tracking-wide">
+            </div>
+        </div>
+
+        <div id="dashboardKoridor" class="space-y-4"></div>
+        
+    </main>
+
+    <div id="logoutModal" class="hidden fixed inset-0 z-[9999] bg-slate-900/60 dark:bg-[#050b14]/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all opacity-0">
+        <div id="logoutModalContent" class="bg-white dark:bg-[#132247] rounded-[2rem] p-6 w-full max-w-xs border border-slate-200 dark:border-slate-800 shadow-2xl transform scale-95 transition-all duration-300">
+            <div class="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner border border-rose-200 dark:border-rose-800/50">👋</div>
+            <h3 class="text-center font-black text-slate-800 dark:text-white text-lg mb-1 uppercase tracking-tight">Akhiri Sesi?</h3>
+            <p class="text-center text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-6 tracking-widest uppercase">Anda akan keluar dari aplikasi.</p>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="closeLogoutModal()" class="py-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#0f1a36] dark:hover:bg-[#1a294d] text-slate-600 dark:text-slate-300 font-black text-[10px] tracking-widest uppercase transition-colors active:scale-95 border border-slate-200 dark:border-slate-700">Batal</button>
+                <button onclick="executeLogout()" class="py-3 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-black text-[10px] tracking-widest uppercase shadow-lg shadow-rose-500/20 transition-all active:scale-95">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    
+    <script>
+        const themeBtn = document.getElementById('themeBtn');
+
+        // 1. Sinkronisasi awal membaca preferensi memori dari penyimpanan browser
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+            if (themeBtn) themeBtn.innerText = 'LIGHT MODE';
+        } else {
+            document.documentElement.classList.remove('dark');
+            if (themeBtn) themeBtn.innerText = 'DARK MODE';
+        }
+
+        // 2. Fungsi eksekusi pemicu pertukaran tema
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                if (themeBtn) themeBtn.innerText = 'DARK MODE';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                if (themeBtn) themeBtn.innerText = 'LIGHT MODE';
+            }
+        }
+
+        // Logika UI Accordion Smooth (Klik satu, koridor lain otomatis nutup)
+        function toggleAccordion(id) {
+            const all = document.querySelectorAll('.accordion-item');
+            all.forEach(item => {
+                if(item.id === id) {
+                    item.classList.toggle('accordion-active');
+                } else {
+                    item.classList.remove('accordion-active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

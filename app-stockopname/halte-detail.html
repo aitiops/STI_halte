@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Halte - IT Stock Opname</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease, color 0.3s ease; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 dark:bg-[#0b1329] dark:text-slate-100 min-h-screen pb-10">
+
+    <div id="loadingOverlay" class="fixed inset-0 flex flex-col items-center justify-center bg-slate-100 dark:bg-[#0b1329] z-[999] loading-overlay">
+        <div class="flex flex-col items-center justify-center transition-all duration-300">
+            <div class="loader border-t-cyan-500 dark:border-t-cyan-400 w-14 h-14 border-4 rounded-full slow-spin"></div> 
+            <p id="loadingStatus" class="text-cyan-600 dark:text-cyan-400 font-black tracking-widest uppercase mt-4 text-[10px] animate-pulse">Sinkronisasi Data...</p>
+        </div>
+    </div>
+
+    <nav class="bg-slate-900 border-b border-slate-800 text-white p-4 sticky top-0 z-50 shadow-xl">
+        <div class="container mx-auto flex justify-between items-center max-w-6xl">
+            <div class="flex items-center gap-2">
+                <button onclick="goBackDashboard()" class="hover:bg-white/20 p-2 rounded-xl transition-all active:scale-90 text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <div class="ml-1">
+                    <p class="text-[9px] font-black opacity-60 uppercase tracking-widest leading-none">Informasi Aset</p>
+                    <h1 class="font-black text-sm tracking-tight uppercase mt-0.5">Detail Perangkat</h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="toggleTheme()" id="themeBtn" class="bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-2 rounded-xl transition-all active:scale-95 text-[10px] font-black tracking-widest uppercase font-mono text-white">
+                    DARK MODE
+                </button>
+                <button id="btnTambahPerangkat" onclick="goInput()" class="bg-white text-[#0095DA] dark:bg-[#0095DA] dark:text-white px-4 py-2.5 rounded-xl font-black text-xs shadow-lg shadow-blue-950/20 hover:bg-slate-50 dark:hover:bg-[#007bb5] transition-all active:scale-95 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>➕</span> Perangkat
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="p-4 md:p-6 container mx-auto max-w-6xl">
+        
+        <div class="bg-gradient-to-br from-blue-50/80 via-slate-50 to-white dark:from-[#132247] dark:via-[#111c3a] dark:to-[#0f172e] p-6 rounded-[2.5rem] shadow-md shadow-slate-200/60 dark:shadow-2xl border border-blue-100/50 dark:border-slate-800/80 mb-6 relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-bl-full flex items-start justify-end p-4 text-xl select-none">
+                📍
+            </div>
+            <div>
+                <p class="text-[9px] font-black text-[#0095DA] uppercase tracking-widest mb-1.5">Lokasi Pemeriksaan Lapangan</p>
+                <h2 id="halteTitle" class="text-xl md:text-2xl font-black text-slate-800 dark:text-white leading-tight uppercase tracking-tight">Menghubungkan Halte...</h2>
+            </div>
+            <div class="flex items-center gap-2 mt-4">
+                <span class="bg-blue-100/80 text-[#0082c0] dark:bg-[#0095DA]/10 dark:text-[#0095DA] text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider border border-blue-200/40 dark:border-[#0095DA]/20" id="koridorTitle">
+                    Memuat Koridor...
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 mb-6">
+            <div class="bg-white dark:bg-[#132247]/40 p-5 rounded-[2rem] border border-slate-200/60 dark:border-slate-800/60 shadow-sm dark:shadow-lg text-center backdrop-blur-sm">
+                <p class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Total Aset</p>
+                <p id="totalPerangkat" class="text-2xl font-black text-slate-800 dark:text-white leading-none">0</p>
+            </div>
+            <div class="bg-emerald-50/60 dark:bg-emerald-950/30 p-5 rounded-[2rem] border border-emerald-200/50 dark:border-emerald-500/20 shadow-sm dark:shadow-lg text-center backdrop-blur-sm transition-all">
+                <p class="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1.5">On Service</p>
+                <p id="totalOn" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-none">0</p>
+            </div>
+            <div class="bg-rose-50/60 dark:bg-rose-950/30 p-5 rounded-[2rem] border border-rose-200/50 dark:border-rose-500/20 shadow-sm dark:shadow-lg text-center backdrop-blur-sm transition-all">
+                <p class="text-[9px] font-black text-rose-500 dark:text-rose-400 uppercase tracking-wider mb-1.5">Off / Rusak</p>
+                <p id="totalOff" class="text-2xl font-black text-rose-500 dark:text-rose-400 leading-none">0</p>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-4 mb-6 sticky top-[76px] z-40 bg-slate-100/80 dark:bg-[#0b1329]/70 backdrop-blur-md py-2 px-1 rounded-2xl">
+            <div class="relative flex-grow group">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-xs opacity-50">🔍</div>
+                <input type="text" id="searchInput" placeholder="Cari Serial Number atau Nama Perangkat..." oninput="filterPerangkat()" 
+                    class="w-full p-4 pl-12 bg-white dark:bg-[#132247]/50 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl text-xs font-bold text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#0095DA] focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-950/50 shadow-sm transition-all uppercase tracking-wide">
+            </div>
+            <select id="filterStatus" onchange="filterPerangkat()" 
+                class="bg-white dark:bg-[#132247]/50 p-4 pr-10 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm focus:outline-none focus:border-[#0095DA] text-xs font-black text-slate-600 dark:text-slate-300 tracking-wide uppercase cursor-pointer transition-all">
+                <option value="" class="bg-white dark:bg-[#111c3a] text-slate-700 dark:text-slate-300">Semua Status Alat</option>
+                <option value="On Service" class="bg-white dark:bg-[#111c3a] text-emerald-600 dark:text-emerald-400">🟢 ON SERVICE</option>
+                <option value="Out of Service" class="bg-white dark:bg-[#111c3a] text-rose-600 dark:text-rose-400">🔴 OUT OF SERVICE</option>
+            </select>
+        </div>
+
+        <div id="tablePerangkat" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </main>
+
+    <div id="photoModal" class="fixed inset-0 bg-slate-950/90 hidden items-center justify-center z-[9999] p-4 backdrop-blur-md">
+        <button onclick="closePhoto()" class="absolute top-6 right-6 text-white bg-white/10 hover:bg-white/20 p-3 rounded-xl transition-all z-[1010] shadow-xl active:scale-90">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+        <iframe id="modalIframe" class="w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl bg-white overflow-hidden border border-slate-300 dark:border-slate-800"></iframe>
+    </div>
+
+    <div id="deleteModal" class="fixed inset-0 bg-slate-950/60 hidden items-center justify-center z-[9999] p-4 backdrop-blur-sm transition-all duration-300">
+        <div class="bg-white dark:bg-[#132247] w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl border border-slate-200 dark:border-slate-800/80 text-center">
+            <div id="deleteModalIcon" class="w-14 h-14 bg-rose-50 dark:bg-rose-950/30 text-rose-500 dark:text-rose-400 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 shadow-inner">
+                ⚠️
+            </div>
+            <h3 id="deleteModalTitle" class="text-slate-800 dark:text-white font-black text-sm uppercase tracking-wider mb-2">Hapus Perangkat?</h3>
+            <p id="deleteModalDesc" class="text-slate-400 dark:text-slate-400 text-xs font-medium px-2 leading-relaxed mb-6">Tindakan ini bersifat permanen. Data perangkat ini akan sepenuhnya dihapus dari sistem monitoring.</p>
+            
+            <div id="deleteModalActions" class="grid grid-cols-2 gap-3"></div>
+        </div>
+    </div>
+
+    <div id="logoutModal" class="hidden fixed inset-0 z-[9999] bg-slate-900/60 dark:bg-[#050b14]/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all opacity-0">
+        <div id="logoutModalContent" class="bg-white dark:bg-[#132247] rounded-[2rem] p-6 w-full max-w-xs border border-slate-200 dark:border-slate-800 shadow-2xl transform scale-95 transition-all duration-300">
+            <div class="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner border border-rose-200 dark:border-rose-800/50">👋</div>
+            <h3 class="text-center font-black text-slate-800 dark:text-white text-lg mb-1 uppercase tracking-tight">Akhiri Sesi?</h3>
+            <p class="text-center text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-6 tracking-widest uppercase">Anda akan keluar dari aplikasi.</p>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="closeLogoutModal()" class="py-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#0f1a36] dark:hover:bg-[#1a294d] text-slate-600 dark:text-slate-300 font-black text-[10px] tracking-widest uppercase transition-colors active:scale-95 border border-slate-200 dark:border-slate-700">Batal</button>
+                <button onclick="executeLogout()" class="py-3 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-black text-[10px] tracking-widest uppercase shadow-lg shadow-rose-500/20 transition-all active:scale-95">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const themeBtn = document.getElementById('themeBtn');
+
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+            if (themeBtn) themeBtn.innerText = 'LIGHT MODE';
+        } else {
+            document.documentElement.classList.remove('dark');
+            if (themeBtn) themeBtn.innerText = 'DARK MODE';
+        }
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                if (themeBtn) themeBtn.innerText = 'DARK MODE';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                if (themeBtn) themeBtn.innerText = 'LIGHT MODE';
+            }
+        }
+    </script>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/halte-detail.js"></script>
+</body>
+</html>
