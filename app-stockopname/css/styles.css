@@ -1,0 +1,284 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --tj-blue: #0095DA;
+    --tj-dark: #005696;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-y: auto; 
+    overscroll-behavior-y: contain; 
+    background-color: #0b1120;
+}
+
+/* ================= BACKGROUND LOGIC ================= */
+.tj-bg {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+@media (min-width: 769px) {
+    .tj-bg { background-image: url('../assets/desktop_view.png'); background-size: cover; }
+}
+
+@media (max-width: 768px) {
+    .tj-bg { background-image: url('../assets/mobile_view.png'); background-size: cover; }
+}
+
+/* Glassmorphism Card (Login) */
+.glass-card {
+    background: rgba(15, 23, 42, 0.5); 
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 2rem;
+    padding: 1.75rem 1.5rem;
+    width: 90%;
+    max-width: 320px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    margin: 20px auto;
+}
+
+/* ================= UNIVERSAL UI COMPONENTS ================= */
+.tj-btn {
+    width: 100%;
+    padding: 0.85rem;
+    border-radius: 1.25rem;
+    border: none;
+    background: var(--tj-blue) !important;
+    color: white !important;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 149, 218, 0.25);
+    transition: all 0.2s ease;
+}
+
+.tj-btn:hover {
+    background: #007bb5 !important;
+}
+
+.tj-btn:active { transform: scale(0.98); }
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-top: 0.6rem;
+    margin-left: 0.2rem;
+    cursor: pointer;
+}
+
+.checkbox-container span {
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 700;
+    margin-left: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* ================= PREMIUM LOADING OVERLAY (FROSTED GLASS UPGRADE) ================= */
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    /* UPGRADE RY: Menggunakan efek kaca transparan abu-abu lembut agar background asli samar-samar kelihatan */
+    background: rgba(226, 232, 240, 0.45) !important; 
+    backdrop-filter: blur(25px) !important; /* Efek blur kaca dipertebal biar premium */
+    -webkit-backdrop-filter: blur(25px) !important;
+    z-index: 10000;
+    display: none; 
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease !important;
+}
+
+/* OTOMATIS BERUBAH JADI KACA GELAP PAS THEME GELAP AKTIF (ANTI-SILAU) */
+.dark .loading-overlay {
+    background: rgba(11, 19, 41, 0.75) !important; /* Gelap transparan */
+}
+
+.loading-active {
+    display: flex !important;
+}
+
+.premium-loader, .loader {
+    width: 100px; 
+    height: 100px;
+    background-image: url('../assets/logo_tj_biru.png'); 
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: none !important;
+    animation: tjLogoPulse 1.8s ease-in-out infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes tjLogoPulse {
+    0%, 100% { 
+        opacity: 0.8; 
+        transform: scale(1); 
+        filter: drop-shadow(0 0 0px rgba(0, 149, 218, 0));
+    }
+    50% { 
+        opacity: 1; 
+        transform: scale(1.08); 
+        filter: drop-shadow(0 0 15px rgba(0, 149, 218, 0.4)); /* Glow efek diperhalus */
+    }
+}
+
+.loading-text, .loading-status {
+    color: var(--tj-blue) !important;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-family: 'Inter', sans-serif;
+    animation: pulseText 1.5s ease-in-out infinite;
+    text-align: center;
+    margin-top: 1rem;
+    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5); /* Kasih shadow tipis biar kebaca di mode terang */
+}
+
+/* Jaga kontras teks di mode gelap */
+.dark .loading-text, .dark .loading-status {
+    color: #00a2ed !important; /* Warna biru sedikit lebih terang agar menyala di kaca gelap */
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes pulseText {
+    0%, 100% { opacity: 0.6; transform: scale(0.98); }
+    50% { opacity: 1; transform: scale(1); }
+}
+
+/* ================= DASHBOARD & ACCORDION ================= */
+.tj-card {
+    background: white;
+    border-radius: 1.5rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.accordion-header {
+    cursor: pointer;
+    background: #f8fafc;
+    border-radius: 1.25rem;
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.accordion-active .accordion-content {
+    max-height: 2000px;
+}
+
+.accordion-active .chevron-icon {
+    transform: rotate(180deg);
+}
+
+/* ================= FORM REFINEMENT (SMOOTH) ================= */
+.label-text {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.6rem;
+    color: #64748b;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Base input */
+.tj-input {
+    width: 100%;
+    padding: 0.85rem 1.25rem;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.25rem;
+    font-size: 15px;
+    font-weight: 500; 
+    color: #475569;
+    outline: none;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m19 9-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1.25rem center;
+    background-size: 1rem;
+}
+
+.tj-input:focus {
+    border-color: var(--tj-blue);
+    box-shadow: 0 0 0 4px rgba(0, 149, 218, 0.08);
+}
+
+/* RESET TOTAL: PAKSA HILANGKAN PANAH SELECT DI INPUT TEXT DAN PASSWORD HALAMAN LOGIN */
+input[type="text"].tj-input,
+input[type="password"].tj-input {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.02em;
+    background-image: none !important; /* Buang panah chevron */
+    padding-right: 1.25rem !important; /* Reset padding kanan */
+}
+
+input[type="text"].tj-input::placeholder,
+input[type="password"].tj-input::placeholder {
+    color: #cbd5e1;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+/* SKELETON EFFECT */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 1rem;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* =======================================================
+   STANDARISASI LOADING OVERLAY & MODAL (GLOBAL)
+======================================================= */
+.loading-overlay { 
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.77, 0, 0.175, 1), visibility 0.5s; 
+}
+.overlay-slide-up { 
+    transform: translateY(-100%); 
+    opacity: 0; 
+    visibility: hidden; 
+}
+
+/* CUSTOM SLOW SPIN BIAR ELEGAN */
+.slow-spin { 
+    animation: spin 2.5s linear infinite; 
+}
+@keyframes spin { 
+    100% { transform: rotate(360deg); } 
+}
+
+/* EFEK GLOW EXECUTIVE & HOVER CARD */
+.executive-glow { box-shadow: 0 10px 30px -10px rgba(0, 212, 255, 0.3); }
+.card-hover:hover { transform: translateY(-4px); box-shadow: 0 15px 30px -10px rgba(0,0,0,0.1); }
+.dark .card-hover:hover { box-shadow: 0 15px 30px -10px rgba(0, 212, 255, 0.1); }
