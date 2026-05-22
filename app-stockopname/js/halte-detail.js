@@ -67,7 +67,7 @@ function goInput() {
         alert("Akses Ditolak: Hanya engineer lapangan yang dapat menambah data!");
         return;
     }
-    window.location.href = `stockopname.html?halte_id=${halte_id}&halte_nama=${encodeURIComponent(halte_nama)}&koridor_id=${koridor_id}`;
+    window.location.href = `stock-opname.html?halte_id=${halte_id}&halte_nama=${encodeURIComponent(halte_nama)}&koridor_id=${koridor_id}`;
 }
 
 // ================= UNIFIED LOADING OVERLAY CONTROL (UPGRADE) =================
