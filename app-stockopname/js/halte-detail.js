@@ -2,7 +2,7 @@
  * HALTE DETAIL ENGINE - IT STOCK OPNAME TRANSJAKARTA
  * Final Ultra Premium Executive Version 
  * Features: 
- * 1. Dynamic Route Auto-Parser (Deteksi Arah Otomatis dari Nama Halte Ry) 📍
+ * 1. Smart RegEx Route Parser (Ekstrak otomatis arah dari Google Sheet via nama halte) 📍
  * 2. Premium Live Search & Status Filters
  * 3. Dynamic Auto-Direction Grouping Tab Switcher
  */
@@ -88,32 +88,51 @@ function hideLoading() {
     }
 }
 
-// ================= HELPER AUTO-PARSE ARAH DARI NAMA HALTE Ry =================
+// ================= PERBAIKAN: SMART REGEX ROUTE PARSER (PEMBERSIH OTOMATIS) Ry =================
 function dapatkanArahDefaultDariNamaHalte() {
-    if (!halte_nama) return ["ARAH A", "ARAH B"];
+    // Default fallback jika parameter nama halte kosong
+    const fallbackDefault = ["ARAH TIMUR", "ARAH BARAT"];
+    if (!halte_nama) return fallbackDefault;
     
-    // Konversi ke uppercase untuk mempermudah pencocokan string
-    const namaUpper = halte_nama.toUpperCase();
-    
-    // Pola 1: Jika nama halte mengandung pemisah tanda hubung "-" atau garing "/" (Contoh: "Pinang Ranti - Pluit")
-    if (namaUpper.includes(" - ")) {
-        return namaUpper.split(" - ").map(str => "ARAH " + str.trim());
-    }
-    if (namaUpper.includes(" / ")) {
-        return namaUpper.split(" / ").map(str => "ARAH " + str.trim());
-    }
-    
-    // Pola 2: Jika nama mengandung tanda kurung (Contoh: "Ciliwung (Pinang Ranti)")
-    if (namaUpper.includes("(") && namaUpper.includes(")")) {
-        const diDalamKurung = namaUpper.substring(namaUpper.indexOf("(") + 1, namaUpper.indexOf(")"));
-        if (diDalamKurung.includes("-")) {
-            return diDalamKurung.split("-").map(str => "ARAH " + str.trim());
+    try {
+        const namaClean = halte_nama.trim();
+        
+        // Pola RegEx: Cari teks yang berada di dalam tanda kurung (...) murni
+        const matchKurung = namaClean.match(/\(([^)]+)\)/);
+        let stringRute = "";
+        
+        if (matchKurung && matchKurung[1]) {
+            stringRute = matchKurung[1]; // Mengambil contoh: "Pinang Ranti-Pluit" atau "Pinang Ranti - Pluit"
+        } else {
+            // Jika tidak ada tanda kurung, gunakan string nama halte seutuhnya
+            stringRute = namaClean;
         }
-        return ["ARAH " + diDalamKurung.trim(), "ARAH BALIKAN"];
-    }
+        
+        // Pecah rute berdasarkan karakter pemisah yang umum di Google Sheets (strip, garing, atau koma)
+        let parts = [];
+        if (stringRute.includes("-")) {
+            parts = stringRute.split("-");
+        } else if (stringRute.includes("/")) {
+            parts = stringRute.split("/");
+        } else if (stringRute.includes(",")) {
+            parts = stringRute.split(",");
+        } else {
+            // Jika tunggal tanpa pemisah rute balikan
+            let singleRoute = stringRute.replace(/ARAH\s+/i, "").trim();
+            return [`Arah ${singleRoute}`, `Arah Sebaliknya`];
+        }
+        
+        // Bersihkan spasi, hilangkan kata "Arah" double, lalu format ulang menjadi "Arah [Nama Rute]"
+        return parts.map(part => {
+            let cleanPart = part.replace(/ARAH\s+/i, "").trim();
+            // Ubah huruf pertama menjadi kapital (Title Case) agar UI elegan Ry
+            return "Arah " + cleanPart.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+        });
 
-    // Pola Balikan/Default Terakhir jika nama halte pendek tunggal
-    return ["ARAH 1", "ARAH 2"];
+    } catch (e) {
+        console.error("Gagal parsing nama rute:", e);
+        return fallbackDefault;
+    }
 }
 
 // ================= LOAD DATA PERANGKAT DARI DATABASE =================
@@ -137,10 +156,13 @@ async function loadPerangkat() {
         updateSummary(perangkatList);
         
         // Atur inisialisasi default tab arah pertama kali data masuk Ry
-        let semuaArah = [...new Set(perangkatList.map(item => (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim()))];
+        let semuaArah = [...new Set(perangkatList.map(item => {
+            let label = item.arah || item.dermaga || "";
+            return label.trim();
+        }).filter(Boolean))];
         
-        // FIX BARU: Jika data kosong gres, panggil fungsi pintar pemotong nama arah rute asli Ry!
-        if (perangkatList.length === 0) {
+        // FIX BARU: Jika database kosong gres (0 aset), panggil Smart RegEx Parser biar tab sinkron dengan Google Sheet Ry!
+        if (perangkatList.length === 0 || semuaArah.length === 0) {
             semuaArah = dapatkanArahDefaultDariNamaHalte();
         }
 
@@ -180,15 +202,18 @@ function filterPerangkat() {
     const statusFilter = document.getElementById("filterStatus").value;
 
     // 1. Ekstrak Semua Variasi Grup Arah dari data server
-    let semuaArah = [...new Set(perangkatList.map(item => (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim()))];
+    let semuaArah = [...new Set(perangkatList.map(item => {
+        let label = item.arah || item.dermaga || "";
+        return label.trim();
+    }).filter(Boolean))];
 
-    // Jika bener-bener kosong gres (0 aset), kita suntik Grup Arah Pintar Ry!
-    if (perangkatList.length === 0) {
+    // Jika bener-bener kosong gres (0 aset), kita suntik Grup Arah Pintar hasil RegEx Ry!
+    if (perangkatList.length === 0 || semuaArah.length === 0) {
         semuaArah = dapatkanArahDefaultDariNamaHalte();
     }
 
     // Jaga agar state tab aktif tidak hilang/kosong ghaib saat pertama kali load
-    if (semuaArah.length > 0 && !semuaArah.includes(activeTabArah)) {
+    if (semuaArah.length > 0 && !semuaArah.some(a => a.toUpperCase() === activeTabArah.toUpperCase())) {
         activeTabArah = semuaArah[0];
     }
 
@@ -201,7 +226,7 @@ function filterPerangkat() {
         const sn = String(item.serial_number || "").toLowerCase();
         const merk = String(item.merk_model || "").toLowerCase();
         const kategori = String(item.kategori || "").toLowerCase();
-        const itemArah = (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim();
+        const itemArah = String(item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim();
 
         const matchesKeyword = nama.includes(keyword) || 
                                sn.includes(keyword) || 
@@ -210,9 +235,8 @@ function filterPerangkat() {
 
         const matchesStatus = statusFilter === "" ? true : item.status === statusFilter;
         
-        // Kunci Data Sesuai Tab Arah Aktif
-        // Catatan: Jika data kosong, filter ini diabaikan karena renderPerangkat otomatis menangani kondisi empty state
-        const matchesArah = itemArah === activeTabArah;
+        // Kunci Data Sesuai Tab Arah Aktif (Case Insensitive Protection)
+        const matchesArah = itemArah === activeTabArah.toUpperCase().trim();
 
         return matchesKeyword && matchesStatus && matchesArah;
     });
@@ -240,12 +264,12 @@ function renderTabArahComponent(arrayArah) {
     
     let htmlTabs = "";
     arrayArah.forEach(arah => {
-        const isActive = arah === activeTabArah;
+        const isActive = arah.toUpperCase().trim() === activeTabArah.toUpperCase().trim();
         const activeStyles = "bg-[#0095DA] text-white shadow-md shadow-blue-500/20 dark:shadow-blue-950/40 border-transparent";
         const inactiveStyles = "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-[#132247]/40 dark:text-slate-300 dark:border-slate-800 dark:hover:bg-[#1e2e5a]/50";
         
         // Hitung total aset riil di server untuk arah ini
-        const countAsetArah = perangkatList.filter(item => (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim() === arah).length;
+        const countAsetArah = perangkatList.filter(item => String(item.arah || item.dermaga || "").toUpperCase().trim() === arah.toUpperCase().trim()).length;
 
         htmlTabs += `
             <button onclick="switchArahTab('${arah}')" class="px-5 py-2.5 rounded-xl border text-xs font-black tracking-wide uppercase transition-all duration-200 active:scale-95 shrink-0 flex items-center gap-2 ${isActive ? activeStyles : inactiveStyles}">
