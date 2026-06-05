@@ -1,6 +1,6 @@
 /**
  * HALTE DETAIL ENGINE - IT STOCK OPNAME TRANSJAKARTA
- * Final Ultra Premium Executive Version (Sync Overlay & Modal Ry)
+ * Final Ultra Premium Executive Version (With Dynamic Auto-Direction Grouping Tab Switcher Ry)
  */
 
 // 1. AMBIL PARAMETER URL DENGAN MEKANISME FAILSAFE MULTI-KEY Ry
@@ -15,6 +15,7 @@ const USER_ROLE = (localStorage.getItem("role") || "").toLowerCase();
 // Global Variable penampung data aset dari server
 let perangkatList = [];
 let currentDeleteId = null; 
+let activeTabArah = ""; // State global untuk mengunci tab arah aktif saat ini
 
 // ================= DYNAMIC BACK BUTTON ROUTING (ANTI-SALAH ROUTE Ry) =================
 function goBackDashboard() {
@@ -32,12 +33,10 @@ if (!halte_id) goBackDashboard();
 
 // ================= EXECUTE FIRST RENDER =================
 window.onload = () => {
-    // Bersihkan data parameter dari spasi ghaib atau karakter url-encode
     if (halte_id) halte_id = halte_id.trim();
     if (halte_nama) halte_nama = decodeURIComponent(halte_nama).trim();
     if (koridor_id) koridor_id = koridor_id.trim();
 
-    // TEMBAK LANGSUNG KE HTML BIAR ANTI-STUCK SEMENTARA LOADING BACKEND BERJALAN Ry
     const elTitle = document.getElementById("halteTitle");
     const elKoridor = document.getElementById("koridorTitle");
 
@@ -48,10 +47,7 @@ window.onload = () => {
         elKoridor.innerHTML = "KORIDOR " + koridor_id;
     }
 
-    // Jalankan proteksi tombol aksi
     applyRoleVisibilityProtection();
-    
-    // Tarik data riil aset perangkat dari Google Sheets
     loadPerangkat();
 };
 
@@ -107,7 +103,15 @@ async function loadPerangkat() {
         perangkatList = data.data || [];
 
         updateSummary(perangkatList);
-        renderPerangkat(perangkatList);
+        
+        // Atur inisialisasi default tab arah pertama kali data masuk Ry
+        const semuaArah = [...new Set(perangkatList.map(item => (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim()))];
+        if (semuaArah.length > 0) {
+            activeTabArah = semuaArah[0];
+        }
+
+        // Jalankan Filter & Render Otomatis
+        filterPerangkat();
 
         if (document.getElementById("loadingStatus")) {
             document.getElementById("loadingStatus").innerText = "Data Siap!";
@@ -132,16 +136,29 @@ function updateSummary(data) {
     if(document.getElementById("totalOff")) document.getElementById("totalOff").innerHTML = totalOff;
 }
 
-// ================= LIVE SEARCH & FILTER LOGIC =================
+// ================= LIVE SEARCH, TAB GROUPING & FILTER LOGIC =================
 function filterPerangkat() {
     const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
     const statusFilter = document.getElementById("filterStatus").value;
 
+    // 1. Ekstrak Semua Variasi Grup Arah Yang Tersedia Secara Dinamis
+    const semuaArah = [...new Set(perangkatList.map(item => (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim()))];
+
+    // Jaga agar state tab aktif tidak hilang/kosong ghaib
+    if (semuaArah.length > 0 && !semuaArah.includes(activeTabArah)) {
+        activeTabArah = semuaArah[0];
+    }
+
+    // 2. Suntik / Render Komponen Navigasi Tab Langsung di Atas Tabel Perangkat Ry
+    renderTabArahComponent(semuaArah);
+
+    // 3. Filter Data Berdasarkan Keyword, Status, dan Grup Arah yang Sedang Aktif
     const filteredData = perangkatList.filter(item => {
         const nama = String(item.nama_perangkat || "").toLowerCase();
         const sn = String(item.serial_number || "").toLowerCase();
         const merk = String(item.merk_model || "").toLowerCase();
         const kategori = String(item.kategori || "").toLowerCase();
+        const itemArah = (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim();
 
         const matchesKeyword = nama.includes(keyword) || 
                                sn.includes(keyword) || 
@@ -149,11 +166,64 @@ function filterPerangkat() {
                                kategori.includes(keyword);
 
         const matchesStatus = statusFilter === "" ? true : item.status === statusFilter;
+        
+        // Kunci Data Sesuai Tab Arah Aktif Jika Halte Bertipe Dual (Lebih dari 1 arah)
+        const matchesArah = semuaArah.length <= 1 ? true : itemArah === activeTabArah;
 
-        return matchesKeyword && matchesStatus;
+        return matchesKeyword && matchesStatus && matchesArah;
     });
 
     renderPerangkat(filteredData);
+}
+
+// FUNCTION PEMBUAT KOMPONEN NAVIGASI TAB ARAH PREMIUM DYNAMICALLY
+function renderTabArahComponent(arrayArah) {
+    let tabContainer = document.getElementById("directionTabContainer");
+    
+    // Jika container tab belum ada di html, kita buatkan wadahnya tepat di atas tablePerangkat Ry
+    if (!tabContainer) {
+        const targetTable = document.getElementById("tablePerangkat");
+        if (targetTable) {
+            tabContainer = document.createElement("div");
+            tabContainer.id = "directionTabContainer";
+            tabContainer.className = "w-full flex items-center gap-2 mb-5 overflow-x-auto pb-1 select-none scrollbar-none";
+            targetTable.parentNode.insertBefore(tabContainer, targetTable);
+        }
+    }
+
+    if (!tabContainer) return;
+
+    // Jika arah hanya ada 1 (Single Halte), sembunyikan navigasi tab biar rapi ga norak
+    if (arrayArah.length <= 1) {
+        tabContainer.innerHTML = "";
+        tabContainer.className = "hidden";
+        return;
+    }
+
+    tabContainer.className = "w-full flex items-center gap-2 mb-5 overflow-x-auto pb-1 select-none scrollbar-none";
+    
+    let htmlTabs = "";
+    arrayArah.forEach(arah => {
+        const isActive = arah === activeTabArah;
+        const activeStyles = "bg-[#0095DA] text-white shadow-md shadow-blue-500/20 dark:shadow-blue-950/40 border-transparent";
+        const inactiveStyles = "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-[#132247]/40 dark:text-slate-300 dark:border-slate-800 dark:hover:bg-[#1e2e5a]/50";
+        
+        // Ambil hitungan total perangkat khusus arah ini untuk penanda lencana (badge counters)
+        const countAsetArah = perangkatList.filter(item => (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim() === arah).length;
+
+        htmlTabs += `
+            <button onclick="switchArahTab('${arah}')" class="px-5 py-2.5 rounded-xl border text-xs font-black tracking-wide uppercase transition-all duration-200 active:scale-95 shrink-0 flex items-center gap-2 ${isActive ? activeStyles : inactiveStyles}">
+                <span>📍 ${arah}</span>
+                <span class="text-[9px] px-2 py-0.5 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}">${countAsetArah}</span>
+            </button>
+        `;
+    });
+    tabContainer.innerHTML = htmlTabs;
+}
+
+function switchArahTab(namaArah) {
+    activeTabArah = namaArah;
+    filterPerangkat();
 }
 
 // ================= RENDER CARD HYBRID =================
@@ -165,7 +235,7 @@ function renderPerangkat(dataList) {
         html = `
             <div class="col-span-full py-20 text-center">
                 <div class="text-5xl mb-4 opacity-20">🔍</div>
-                <p class="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-xs">Belum ada perangkat terdata di halte ini</p>
+                <p class="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-xs">Tidak ada perangkat yang cocok dengan kriteria filter</p>
             </div>`;
         container.innerHTML = html;
         return;
@@ -175,18 +245,22 @@ function renderPerangkat(dataList) {
         const isOn = item.status === 'On Service';
         const bgStatus = isOn ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-rose-100 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400';
         const dotStatus = isOn ? 'bg-emerald-500' : 'bg-rose-500';
+        const stringArah = item.arah || item.dermaga ? `<span class="bg-blue-50 text-[#0095DA] dark:bg-blue-950/40 dark:text-blue-400 text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-wide border border-blue-100/30 dark:border-blue-900/40">📍 ${(item.arah || item.dermaga).toUpperCase()}</span>` : '';
 
         html += `
             <div class="bg-white dark:bg-[#132247]/40 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-800/60 overflow-hidden hover:shadow-xl transition-all duration-300 group">
                 <div class="p-6">
-                    <div class="flex justify-between items-start mb-5">
+                    <div class="flex justify-between items-center mb-5">
                         <div class="flex items-center gap-2 ${bgStatus} px-3 py-1 rounded-full">
                             <span class="w-2 h-2 rounded-full ${dotStatus} animate-pulse"></span>
                             <span class="text-[10px] font-black uppercase tracking-wider">${item.status}</span>
                         </div>
-                        <button onclick="openPhoto('${item.photo}')" class="bg-slate-50 dark:bg-[#1e293b] text-slate-400 dark:text-slate-500 hover:text-[#0095DA] dark:hover:text-[#0095DA] p-2 rounded-xl transition shadow-inner border border-transparent dark:border-slate-800">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-                        </button>
+                        <div class="flex items-center gap-2">
+                            ${stringArah}
+                            <button onclick="openPhoto('${item.photo}')" class="bg-slate-50 dark:bg-[#1e293b] text-slate-400 dark:text-slate-500 hover:text-[#0095DA] dark:hover:text-[#0095DA] p-2 rounded-xl transition shadow-inner border border-transparent dark:border-slate-800">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                            </button>
+                        </div>
                     </div>
 
                     <h3 class="text-lg font-black text-slate-800 dark:text-white leading-tight group-hover:text-[#0095DA] dark:group-hover:text-[#0095DA] transition-colors">${item.nama_perangkat || "-"}</h3>
@@ -205,7 +279,7 @@ function renderPerangkat(dataList) {
                 </div>
 
                 <div class="${USER_ROLE === 'engineer' ? 'grid' : 'hidden'} grid-cols-2 border-t border-slate-100 dark:border-slate-800/40">
-                    <button onclick="window.location.href='stockopname.html?edit=1&id=${item.opname_id}&halte_id=${halte_id}&halte_nama=${encodeURIComponent(halte_nama)}&koridor_id=${koridor_id}'" 
+                    <button onclick="window.location.href='stock-opname.html?edit=1&id=${item.opname_id}&halte_id=${halte_id}&halte_nama=${encodeURIComponent(halte_nama)}&koridor_id=${koridor_id}'" 
                         class="p-4 text-xs font-black text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/20 transition-colors uppercase border-r border-slate-100 dark:border-slate-800/40">
                         Edit
                     </button>
