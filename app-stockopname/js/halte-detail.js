@@ -2,7 +2,7 @@
  * HALTE DETAIL ENGINE - IT STOCK OPNAME TRANSJAKARTA
  * Final Ultra Premium Executive Version 
  * Features: 
- * 1. Smart RegEx Route Parser (Ekstrak otomatis arah dari Google Sheet via nama halte) 📍
+ * 1. Google Sheet Column Sync Unit (Membaca kolom arah_a & arah_b dari database) 📍
  * 2. Premium Live Search & Status Filters
  * 3. Dynamic Auto-Direction Grouping Tab Switcher
  */
@@ -12,6 +12,10 @@ const urlParams = new URLSearchParams(window.location.search);
 let halte_id = urlParams.get("halte_id") || urlParams.get("id");
 let halte_nama = urlParams.get("halte_nama") || urlParams.get("nama");
 let koridor_id = urlParams.get("koridor_id") || urlParams.get("koridor");
+
+// Tangkap parameter arah_a dan arah_b riil sesuai kolom Google Sheet lo Ry
+let paramArahA = urlParams.get("arah_a") || "";
+let paramArahB = urlParams.get("arah_b") || "";
 
 // Ambil data Role Akun yang sedang login saat ini Ry untuk pembatasan hak edit/hapus
 const USER_ROLE = (localStorage.getItem("role") || "").toLowerCase();
@@ -67,7 +71,8 @@ function goInput() {
         alert("Akses Ditolak: Hanya engineer lapangan yang dapat menambah data!");
         return;
     }
-    window.location.href = `stock-opname.html?halte_id=${halte_id}&halte_nama=${encodeURIComponent(halte_nama)}&koridor_id=${koridor_id}`;
+    // Sertakan juga parameter arah_a dan arah_b saat membuka form input perangkat
+    window.location.href = `stock-opname.html?halte_id=${halte_id}&halte_nama=${encodeURIComponent(halte_nama)}&koridor_id=${koridor_id}&arah_a=${encodeURIComponent(paramArahA)}&arah_b=${encodeURIComponent(paramArahB)}`;
 }
 
 // ================= UNIFIED LOADING OVERLAY CONTROL =================
@@ -85,53 +90,6 @@ function hideLoading() {
     const ov = document.getElementById("loadingOverlay");
     if (ov) { 
         ov.classList.add('overlay-slide-up');
-    }
-}
-
-// ================= PERBAIKAN: SMART REGEX ROUTE PARSER (PEMBERSIH OTOMATIS) Ry =================
-function dapatkanArahDefaultDariNamaHalte() {
-    // Default fallback jika parameter nama halte kosong
-    const fallbackDefault = ["ARAH TIMUR", "ARAH BARAT"];
-    if (!halte_nama) return fallbackDefault;
-    
-    try {
-        const namaClean = halte_nama.trim();
-        
-        // Pola RegEx: Cari teks yang berada di dalam tanda kurung (...) murni
-        const matchKurung = namaClean.match(/\(([^)]+)\)/);
-        let stringRute = "";
-        
-        if (matchKurung && matchKurung[1]) {
-            stringRute = matchKurung[1]; // Mengambil contoh: "Pinang Ranti-Pluit" atau "Pinang Ranti - Pluit"
-        } else {
-            // Jika tidak ada tanda kurung, gunakan string nama halte seutuhnya
-            stringRute = namaClean;
-        }
-        
-        // Pecah rute berdasarkan karakter pemisah yang umum di Google Sheets (strip, garing, atau koma)
-        let parts = [];
-        if (stringRute.includes("-")) {
-            parts = stringRute.split("-");
-        } else if (stringRute.includes("/")) {
-            parts = stringRute.split("/");
-        } else if (stringRute.includes(",")) {
-            parts = stringRute.split(",");
-        } else {
-            // Jika tunggal tanpa pemisah rute balikan
-            let singleRoute = stringRute.replace(/ARAH\s+/i, "").trim();
-            return [`Arah ${singleRoute}`, `Arah Sebaliknya`];
-        }
-        
-        // Bersihkan spasi, hilangkan kata "Arah" double, lalu format ulang menjadi "Arah [Nama Rute]"
-        return parts.map(part => {
-            let cleanPart = part.replace(/ARAH\s+/i, "").trim();
-            // Ubah huruf pertama menjadi kapital (Title Case) agar UI elegan Ry
-            return "Arah " + cleanPart.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-        });
-
-    } catch (e) {
-        console.error("Gagal parsing nama rute:", e);
-        return fallbackDefault;
     }
 }
 
@@ -155,20 +113,8 @@ async function loadPerangkat() {
 
         updateSummary(perangkatList);
         
-        // Atur inisialisasi default tab arah pertama kali data masuk Ry
-        let semuaArah = [...new Set(perangkatList.map(item => {
-            let label = item.arah || item.dermaga || "";
-            return label.trim();
-        }).filter(Boolean))];
-        
-        // FIX BARU: Jika database kosong gres (0 aset), panggil Smart RegEx Parser biar tab sinkron dengan Google Sheet Ry!
-        if (perangkatList.length === 0 || semuaArah.length === 0) {
-            semuaArah = dapatkanArahDefaultDariNamaHalte();
-        }
-
-        if (semuaArah.length > 0) {
-            activeTabArah = semuaArah[0];
-        }
+        // Jalankan logika penentuan nama tab arah
+        inisialisasiTabArah();
 
         // Jalankan Filter & Render Otomatis
         filterPerangkat();
@@ -182,6 +128,36 @@ async function loadPerangkat() {
         console.error("Gagal load perangkat:", err);
         hideLoading();
     }
+}
+
+function inisialisasiTabArah() {
+    let semuaArah = [];
+
+    // Jika parameter arah_a dan arah_b di-pass dari master sheet, prioritaskan itu Ry!
+    if (paramArahA || paramArahB) {
+        if (paramArahA) semuaArah.push(formatLabelArah(paramArahA));
+        if (paramArahB) semuaArah.push(formatLabelArah(paramArahB));
+    } else {
+        // Fallback jika dibuka langsung tanpa dashboard: ambil variasi arah dari data yang ada
+        semuaArah = [...new Set(perangkatList.map(item => (item.arah || item.dermaga || "").trim()).filter(Boolean))];
+    }
+
+    // Failsafe cadangan jika benar-benar bunder kosong tanpa parameter sama sekali
+    if (semuaArah.length === 0) {
+        semuaArah = ["Arah Utama", "Arah Sebaliknya"];
+    }
+
+    // Set tab pertama sebagai tab aktif default unit Ry
+    if (semuaArah.length > 0 && !activeTabArah) {
+        activeTabArah = semuaArah[0];
+    }
+}
+
+function formatLabelArah(text) {
+    let clean = text.replace(/ARAH\s+/i, "").trim();
+    // Jadikan Title Case biar cakep di UI (Contoh: "Pinang Ranti")
+    let formatted = clean.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    return "Arah " + formatted;
 }
 
 function updateSummary(data) {
@@ -201,32 +177,34 @@ function filterPerangkat() {
     const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
     const statusFilter = document.getElementById("filterStatus").value;
 
-    // 1. Ekstrak Semua Variasi Grup Arah dari data server
-    let semuaArah = [...new Set(perangkatList.map(item => {
-        let label = item.arah || item.dermaga || "";
-        return label.trim();
-    }).filter(Boolean))];
-
-    // Jika bener-bener kosong gres (0 aset), kita suntik Grup Arah Pintar hasil RegEx Ry!
-    if (perangkatList.length === 0 || semuaArah.length === 0) {
-        semuaArah = dapatkanArahDefaultDariNamaHalte();
+    let semuaArah = [];
+    if (paramArahA || paramArahB) {
+        if (paramArahA) semuaArah.push(formatLabelArah(paramArahA));
+        if (paramArahB) semuaArah.push(formatLabelArah(paramArahB));
+    } else {
+        semuaArah = [...new Set(perangkatList.map(item => (item.arah || item.dermaga || "").trim()).filter(Boolean))];
     }
 
-    // Jaga agar state tab aktif tidak hilang/kosong ghaib saat pertama kali load
-    if (semuaArah.length > 0 && !semuaArah.some(a => a.toUpperCase() === activeTabArah.toUpperCase())) {
+    if (semuaArah.length === 0) {
+        semuaArah = ["Arah Utama", "Arah Sebaliknya"];
+    }
+
+    if (semuaArah.length > 0 && !semuaArah.includes(activeTabArah)) {
         activeTabArah = semuaArah[0];
     }
 
-    // 2. Suntik / Render Komponen Navigasi Tab Langsung di Atas Tabel Perangkat Ry
+    // Render komponen navigasi tab di layar
     renderTabArahComponent(semuaArah);
 
-    // 3. Filter Data Berdasarkan Keyword, Status, dan Grup Arah yang Sedang Aktif
+    // Filter list berdasarkan tab arah yang sedang diklik Ry
     const filteredData = perangkatList.filter(item => {
         const nama = String(item.nama_perangkat || "").toLowerCase();
         const sn = String(item.serial_number || "").toLowerCase();
         const merk = String(item.merk_model || "").toLowerCase();
         const kategori = String(item.kategori || "").toLowerCase();
-        const itemArah = String(item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim();
+        
+        let itemArah = String(item.arah || item.dermaga || "").toUpperCase().trim();
+        let targetArahActive = activeTabArah.replace(/ARAH\s+/i, "").toUpperCase().trim();
 
         const matchesKeyword = nama.includes(keyword) || 
                                sn.includes(keyword) || 
@@ -235,8 +213,8 @@ function filterPerangkat() {
 
         const matchesStatus = statusFilter === "" ? true : item.status === statusFilter;
         
-        // Kunci Data Sesuai Tab Arah Aktif (Case Insensitive Protection)
-        const matchesArah = itemArah === activeTabArah.toUpperCase().trim();
+        // Sinkronisasi data unit: True jika kosong (biar nampil empty state) ATAU arahnya cocok
+        const matchesArah = perangkatList.length === 0 ? true : itemArah.includes(targetArahActive) || targetArahActive.includes(itemArah);
 
         return matchesKeyword && matchesStatus && matchesArah;
     });
@@ -259,17 +237,19 @@ function renderTabArahComponent(arrayArah) {
     }
 
     if (!tabContainer) return;
-
-    tabContainer.className = "w-full flex items-center gap-2 mb-5 overflow-x-auto pb-1 select-none scrollbar-none";
     
     let htmlTabs = "";
     arrayArah.forEach(arah => {
-        const isActive = arah.toUpperCase().trim() === activeTabArah.toUpperCase().trim();
+        const isActive = arah === activeTabArah;
         const activeStyles = "bg-[#0095DA] text-white shadow-md shadow-blue-500/20 dark:shadow-blue-950/40 border-transparent";
         const inactiveStyles = "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-[#132247]/40 dark:text-slate-300 dark:border-slate-800 dark:hover:bg-[#1e2e5a]/50";
         
-        // Hitung total aset riil di server untuk arah ini
-        const countAsetArah = perangkatList.filter(item => String(item.arah || item.dermaga || "").toUpperCase().trim() === arah.toUpperCase().trim()).length;
+        // Hitung total aset riil di server untuk arah ini Ry
+        let targetArahString = arah.replace(/ARAH\s+/i, "").toUpperCase().trim();
+        const countAsetArah = perangkatList.filter(item => {
+            let itemArah = String(item.arah || item.dermaga || "").toUpperCase().trim();
+            return itemArah.includes(targetArahString) || targetArahString.includes(itemArah);
+        }).length;
 
         htmlTabs += `
             <button onclick="switchArahTab('${arah}')" class="px-5 py-2.5 rounded-xl border text-xs font-black tracking-wide uppercase transition-all duration-200 active:scale-95 shrink-0 flex items-center gap-2 ${isActive ? activeStyles : inactiveStyles}">
