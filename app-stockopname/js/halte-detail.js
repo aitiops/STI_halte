@@ -2,9 +2,9 @@
  * HALTE DETAIL ENGINE - IT STOCK OPNAME TRANSJAKARTA
  * Final Ultra Premium Executive Version 
  * Features: 
- * 1. Anti-Salah Route Dashboard Routing Ry
+ * 1. Dynamic Route Auto-Parser (Deteksi Arah Otomatis dari Nama Halte Ry) 📍
  * 2. Premium Live Search & Status Filters
- * 3. Dynamic Auto-Direction Grouping Tab Switcher (With 0-Asset Failsafe) 📍
+ * 3. Dynamic Auto-Direction Grouping Tab Switcher
  */
 
 // 1. AMBIL PARAMETER URL DENGAN MEKANISME FAILSAFE MULTI-KEY Ry
@@ -70,7 +70,7 @@ function goInput() {
     window.location.href = `stock-opname.html?halte_id=${halte_id}&halte_nama=${encodeURIComponent(halte_nama)}&koridor_id=${koridor_id}`;
 }
 
-// ================= UNIFIED LOADING OVERLAY CONTROL (UPGRADE) =================
+// ================= UNIFIED LOADING OVERLAY CONTROL =================
 function showLoading(txt) {
     const ov = document.getElementById("loadingOverlay");
     if (ov) { 
@@ -86,6 +86,34 @@ function hideLoading() {
     if (ov) { 
         ov.classList.add('overlay-slide-up');
     }
+}
+
+// ================= HELPER AUTO-PARSE ARAH DARI NAMA HALTE Ry =================
+function dapatkanArahDefaultDariNamaHalte() {
+    if (!halte_nama) return ["ARAH A", "ARAH B"];
+    
+    // Konversi ke uppercase untuk mempermudah pencocokan string
+    const namaUpper = halte_nama.toUpperCase();
+    
+    // Pola 1: Jika nama halte mengandung pemisah tanda hubung "-" atau garing "/" (Contoh: "Pinang Ranti - Pluit")
+    if (namaUpper.includes(" - ")) {
+        return namaUpper.split(" - ").map(str => "ARAH " + str.trim());
+    }
+    if (namaUpper.includes(" / ")) {
+        return namaUpper.split(" / ").map(str => "ARAH " + str.trim());
+    }
+    
+    // Pola 2: Jika nama mengandung tanda kurung (Contoh: "Ciliwung (Pinang Ranti)")
+    if (namaUpper.includes("(") && namaUpper.includes(")")) {
+        const diDalamKurung = namaUpper.substring(namaUpper.indexOf("(") + 1, namaUpper.indexOf(")"));
+        if (diDalamKurung.includes("-")) {
+            return diDalamKurung.split("-").map(str => "ARAH " + str.trim());
+        }
+        return ["ARAH " + diDalamKurung.trim(), "ARAH BALIKAN"];
+    }
+
+    // Pola Balikan/Default Terakhir jika nama halte pendek tunggal
+    return ["ARAH 1", "ARAH 2"];
 }
 
 // ================= LOAD DATA PERANGKAT DARI DATABASE =================
@@ -111,9 +139,9 @@ async function loadPerangkat() {
         // Atur inisialisasi default tab arah pertama kali data masuk Ry
         let semuaArah = [...new Set(perangkatList.map(item => (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim()))];
         
-        // Failsafe Fallback: Jika data kosong gres, paksa isi 2 tab default awal
+        // FIX BARU: Jika data kosong gres, panggil fungsi pintar pemotong nama arah rute asli Ry!
         if (perangkatList.length === 0) {
-            semuaArah = ["DERMAGA A", "DERMAGA B"];
+            semuaArah = dapatkanArahDefaultDariNamaHalte();
         }
 
         if (semuaArah.length > 0) {
@@ -154,9 +182,9 @@ function filterPerangkat() {
     // 1. Ekstrak Semua Variasi Grup Arah dari data server
     let semuaArah = [...new Set(perangkatList.map(item => (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim()))];
 
-    // Jika bener-bener kosong gres (0 aset), kita suntik Grup Arah Default Ry!
+    // Jika bener-bener kosong gres (0 aset), kita suntik Grup Arah Pintar Ry!
     if (perangkatList.length === 0) {
-        semuaArah = ["DERMAGA A", "DERMAGA B"];
+        semuaArah = dapatkanArahDefaultDariNamaHalte();
     }
 
     // Jaga agar state tab aktif tidak hilang/kosong ghaib saat pertama kali load
@@ -183,6 +211,7 @@ function filterPerangkat() {
         const matchesStatus = statusFilter === "" ? true : item.status === statusFilter;
         
         // Kunci Data Sesuai Tab Arah Aktif
+        // Catatan: Jika data kosong, filter ini diabaikan karena renderPerangkat otomatis menangani kondisi empty state
         const matchesArah = itemArah === activeTabArah;
 
         return matchesKeyword && matchesStatus && matchesArah;
@@ -195,7 +224,6 @@ function filterPerangkat() {
 function renderTabArahComponent(arrayArah) {
     let tabContainer = document.getElementById("directionTabContainer");
     
-    // Jika container tab belum ada di html, kita buatkan wadahnya tepat di atas tablePerangkat Ry
     if (!tabContainer) {
         const targetTable = document.getElementById("tablePerangkat");
         if (targetTable) {
@@ -208,7 +236,6 @@ function renderTabArahComponent(arrayArah) {
 
     if (!tabContainer) return;
 
-    // Selalu paksa tampilkan tab container
     tabContainer.className = "w-full flex items-center gap-2 mb-5 overflow-x-auto pb-1 select-none scrollbar-none";
     
     let htmlTabs = "";
@@ -217,7 +244,7 @@ function renderTabArahComponent(arrayArah) {
         const activeStyles = "bg-[#0095DA] text-white shadow-md shadow-blue-500/20 dark:shadow-blue-950/40 border-transparent";
         const inactiveStyles = "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-[#132247]/40 dark:text-slate-300 dark:border-slate-800 dark:hover:bg-[#1e2e5a]/50";
         
-        // Ambil hitungan total perangkat khusus arah ini
+        // Hitung total aset riil di server untuk arah ini
         const countAsetArah = perangkatList.filter(item => (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim() === arah).length;
 
         htmlTabs += `
@@ -303,7 +330,6 @@ function renderPerangkat(dataList) {
 }
 
 // ================= DELETE MODAL CONTROL =================
-// (Fungsi Modal, Countdown Hapus, Preview Drive & Logout lo tetap 100% UTUH AMAN SAKTI DI SINI Ry)
 function deletePerangkat(opnameId) {
     if (USER_ROLE !== "engineer") return;
     currentDeleteId = opnameId;
