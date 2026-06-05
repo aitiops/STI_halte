@@ -1,6 +1,10 @@
 /**
  * HALTE DETAIL ENGINE - IT STOCK OPNAME TRANSJAKARTA
- * Final Ultra Premium Executive Version (With Dynamic Auto-Direction Grouping Tab Switcher Ry)
+ * Final Ultra Premium Executive Version 
+ * Features: 
+ * 1. Anti-Salah Route Dashboard Routing Ry
+ * 2. Premium Live Search & Status Filters
+ * 3. Dynamic Auto-Direction Grouping Tab Switcher (With 0-Asset Failsafe) 📍
  */
 
 // 1. AMBIL PARAMETER URL DENGAN MEKANISME FAILSAFE MULTI-KEY Ry
@@ -105,7 +109,13 @@ async function loadPerangkat() {
         updateSummary(perangkatList);
         
         // Atur inisialisasi default tab arah pertama kali data masuk Ry
-        const semuaArah = [...new Set(perangkatList.map(item => (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim()))];
+        let semuaArah = [...new Set(perangkatList.map(item => (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim()))];
+        
+        // Failsafe Fallback: Jika data kosong gres, paksa isi 2 tab default awal
+        if (perangkatList.length === 0) {
+            semuaArah = ["DERMAGA A", "DERMAGA B"];
+        }
+
         if (semuaArah.length > 0) {
             activeTabArah = semuaArah[0];
         }
@@ -141,10 +151,15 @@ function filterPerangkat() {
     const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
     const statusFilter = document.getElementById("filterStatus").value;
 
-    // 1. Ekstrak Semua Variasi Grup Arah Yang Tersedia Secara Dinamis
-    const semuaArah = [...new Set(perangkatList.map(item => (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim()))];
+    // 1. Ekstrak Semua Variasi Grup Arah dari data server
+    let semuaArah = [...new Set(perangkatList.map(item => (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim()))];
 
-    // Jaga agar state tab aktif tidak hilang/kosong ghaib
+    // Jika bener-bener kosong gres (0 aset), kita suntik Grup Arah Default Ry!
+    if (perangkatList.length === 0) {
+        semuaArah = ["DERMAGA A", "DERMAGA B"];
+    }
+
+    // Jaga agar state tab aktif tidak hilang/kosong ghaib saat pertama kali load
     if (semuaArah.length > 0 && !semuaArah.includes(activeTabArah)) {
         activeTabArah = semuaArah[0];
     }
@@ -167,8 +182,8 @@ function filterPerangkat() {
 
         const matchesStatus = statusFilter === "" ? true : item.status === statusFilter;
         
-        // Kunci Data Sesuai Tab Arah Aktif Jika Halte Bertipe Dual (Lebih dari 1 arah)
-        const matchesArah = semuaArah.length <= 1 ? true : itemArah === activeTabArah;
+        // Kunci Data Sesuai Tab Arah Aktif
+        const matchesArah = itemArah === activeTabArah;
 
         return matchesKeyword && matchesStatus && matchesArah;
     });
@@ -193,13 +208,7 @@ function renderTabArahComponent(arrayArah) {
 
     if (!tabContainer) return;
 
-    // Jika arah hanya ada 1 (Single Halte), sembunyikan navigasi tab biar rapi ga norak
-    if (arrayArah.length <= 1) {
-        tabContainer.innerHTML = "";
-        tabContainer.className = "hidden";
-        return;
-    }
-
+    // Selalu paksa tampilkan tab container
     tabContainer.className = "w-full flex items-center gap-2 mb-5 overflow-x-auto pb-1 select-none scrollbar-none";
     
     let htmlTabs = "";
@@ -208,7 +217,7 @@ function renderTabArahComponent(arrayArah) {
         const activeStyles = "bg-[#0095DA] text-white shadow-md shadow-blue-500/20 dark:shadow-blue-950/40 border-transparent";
         const inactiveStyles = "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-[#132247]/40 dark:text-slate-300 dark:border-slate-800 dark:hover:bg-[#1e2e5a]/50";
         
-        // Ambil hitungan total perangkat khusus arah ini untuk penanda lencana (badge counters)
+        // Ambil hitungan total perangkat khusus arah ini
         const countAsetArah = perangkatList.filter(item => (item.arah || item.dermaga || "TANPA ARAH").toUpperCase().trim() === arah).length;
 
         htmlTabs += `
@@ -235,7 +244,7 @@ function renderPerangkat(dataList) {
         html = `
             <div class="col-span-full py-20 text-center">
                 <div class="text-5xl mb-4 opacity-20">🔍</div>
-                <p class="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-xs">Tidak ada perangkat yang cocok dengan kriteria filter</p>
+                <p class="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-xs">Tidak ada perangkat di arah ini</p>
             </div>`;
         container.innerHTML = html;
         return;
@@ -294,6 +303,7 @@ function renderPerangkat(dataList) {
 }
 
 // ================= DELETE MODAL CONTROL =================
+// (Fungsi Modal, Countdown Hapus, Preview Drive & Logout lo tetap 100% UTUH AMAN SAKTI DI SINI Ry)
 function deletePerangkat(opnameId) {
     if (USER_ROLE !== "engineer") return;
     currentDeleteId = opnameId;
