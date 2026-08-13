@@ -2,7 +2,7 @@
 <html lang="id" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>WA Report System</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -14,53 +14,58 @@
   <style>
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
     .glass-card {
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
     .glow-effect {
-      box-shadow: 0 0 50px -10px rgba(59, 130, 246, 0.25);
+      box-shadow: 0 10px 40px -10px rgba(59, 130, 246, 0.2);
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-x-hidden">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between p-3 sm:p-6 relative overflow-x-hidden">
 
   <!-- Ambient Background Glows -->
-  <div class="absolute top-10 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
-  <div class="absolute bottom-10 left-1/3 w-[350px] h-[350px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+  <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+  <div class="fixed bottom-0 left-1/3 w-[250px] sm:w-[350px] h-[250px] sm:h-[350px] bg-purple-600/10 rounded-full blur-[90px] pointer-events-none"></div>
 
   <!-- Main Container -->
-  <div class="w-full max-w-2xl glass-card rounded-3xl p-6 sm:p-8 glow-effect relative z-10 my-auto">
+  <div class="w-full max-w-xl mx-auto glass-card rounded-2xl sm:rounded-3xl p-4 sm:p-8 glow-effect relative z-10 my-auto">
     
-    <!-- Header -->
-    <div class="flex items-center justify-between border-b border-slate-800 pb-5 mb-6">
+    <!-- Header Area -->
+    <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-5 sm:mb-6">
       <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-          <i class="fa-solid fa-bolt text-xl"></i>
+        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 flex-shrink-0">
+          <i class="fa-solid fa-bolt text-lg sm:text-xl"></i>
         </div>
         <div>
-          <h1 class="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">WA Report Parser</h1>
-          <p class="text-xs text-slate-400">Database Entry System</p>
+          <h1 class="text-lg sm:text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent leading-tight">WA Report Parser</h1>
+          <p class="text-[11px] sm:text-xs text-slate-400">Database Entry System</p>
         </div>
       </div>
-      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-pulse"></span> Ready
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> Ready
       </span>
     </div>
 
     <!-- Form Section -->
     <form id="reportForm" class="space-y-4">
       
-      <!-- Label & Quick Actions -->
-      <div class="flex items-center justify-between">
-        <label for="chatInput" class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+      <!-- Label & Quick Paste Button -->
+      <div class="flex items-center justify-between gap-2">
+        <label for="chatInput" class="text-xs sm:text-sm font-semibold text-slate-300 flex items-center gap-1.5">
           <i class="fa-regular fa-clipboard text-blue-400"></i> Format Laporan Shift WA
         </label>
         
-        <button type="button" id="pasteBtn" class="text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 font-medium">
+        <button 
+          type="button" 
+          id="pasteBtn" 
+          class="text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 active:bg-blue-500/20 border border-blue-500/30 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 font-medium cursor-pointer touch-manipulation"
+        >
           <i class="fa-regular fa-paste"></i> Tempel
         </button>
       </div>
@@ -69,15 +74,15 @@
       <div class="relative group">
         <textarea 
           id="chatInput" 
-          rows="9" 
-          class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition shadow-inner resize-none font-mono"
+          rows="8" 
+          class="w-full bg-slate-900/90 border border-slate-800 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 text-base sm:text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition shadow-inner resize-none font-mono"
           placeholder="Paste format chat laporan dari WhatsApp di sini..."
           required
         ></textarea>
       </div>
 
-      <!-- Info Footer Textarea -->
-      <div class="flex items-center justify-between text-xs text-slate-500 px-1">
+      <!-- Realtime Counter Footer -->
+      <div class="flex items-center justify-between text-[11px] sm:text-xs text-slate-500 px-1">
         <span id="charCount">0 karakter</span>
         <span id="lineCount">0 baris terdeteksi</span>
       </div>
@@ -86,7 +91,7 @@
       <button 
         type="submit" 
         id="submitBtn" 
-        class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2"
+        class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.99] text-white font-semibold py-3.5 px-5 rounded-xl sm:rounded-2xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base touch-manipulation min-h-[48px]"
       >
         <i class="fa-solid fa-paper-plane text-sm"></i>
         <span>Submit ke Google Sheets</span>
@@ -95,14 +100,17 @@
     </form>
 
     <!-- Status Alert Box -->
-    <div id="statusAlert" class="hidden mt-5 p-4 rounded-2xl text-sm border transition-all duration-300"></div>
+    <div id="statusAlert" class="hidden mt-4 sm:mt-5 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm border transition-all duration-300"></div>
 
   </div>
 
+  <!-- Footer Info -->
+  <p class="text-center text-[11px] text-slate-600 mt-4 mb-2 z-10">Optimized for Mobile & Desktop</p>
+
   <!-- JavaScript Logic -->
   <script>
-    // ⚠️ MASUKKAN WEB APP URL DARI GOOGLE APPS SCRIPT ANDA DI SINI
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx.../exec"; 
+    // ⚠️ JIKA DIPASANG DI HOSTING PRIBADI, MASUKKAN URL WEB APP GOOGLE APPS SCRIPT DI SINI
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzFNZ1x3uLxC6GlvS4XrnqBNclZRTqhFi4E8Ha2fZnWHjnaHl0u9wlRR0q5zAjkqUUaNQ/exec"; 
 
     const chatInput = document.getElementById('chatInput');
     const charCount = document.getElementById('charCount');
@@ -122,30 +130,31 @@
       lineCount.textContent = `${lines} baris terdeteksi`;
     }
 
-    // Quick Paste
+    // Quick Paste Clipboard
     pasteBtn.addEventListener('click', async () => {
       try {
         const text = await navigator.clipboard.readText();
         chatInput.value = text;
         updateCounters();
       } catch (err) {
-        alert('Gagal mengakses clipboard secara otomatis. Silakan tempel manual (Ctrl+V / Paste).');
+        alert('Gagal membaca clipboard otomatis. Silakan tempel secara manual (tahan area teks lalu pilih Paste).');
       }
     });
 
-    // Form Submit Logic
+    // Form Submit Handler
     reportForm.addEventListener('submit', function(e) {
       e.preventDefault();
       
       const chatText = chatInput.value.trim();
       if (!chatText) return;
 
+      // State Loading UI
       submitBtn.disabled = true;
       submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
-      submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-sm"></i> <span>Memproses & Menyimpan Data...</span>`;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-sm"></i> <span>Memproses Data...</span>`;
       statusAlert.className = 'hidden';
 
-      // Path A: Jika dijalankan di dalam Google Apps Script
+      // Path A: Jika dijalankan di dalam Google Apps Script (Web App Internal)
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler(function(res) {
@@ -164,11 +173,11 @@
           })
           .processWALeport(chatText);
       } 
-      // Path B: Jika dijalankan di Hosting Pribadi via API Fetch
+      // Path B: Jika dijalankan di Web Hosting Sendiri (via API Fetch)
       else {
         if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes("AKfycbx...")) {
           resetButton();
-          showStatus(false, "URL API Google Apps Script belum diisi pada variabel GAS_WEB_APP_URL di file Index.html!");
+          showStatus(false, "URL Web App belum diatur pada variabel GAS_WEB_APP_URL di file Index.html!");
           return;
         }
 
@@ -191,7 +200,7 @@
         })
         .catch(err => {
           resetButton();
-          showStatus(false, "Gagal terhubung ke API: " + err.message);
+          showStatus(false, "Gagal terhubung ke server: " + err.message);
         });
       }
     });
@@ -205,11 +214,11 @@
     function showStatus(isSuccess, message) {
       statusAlert.classList.remove('hidden');
       if (isSuccess) {
-        statusAlert.className = 'mt-5 p-4 rounded-2xl text-sm border bg-emerald-500/10 border-emerald-500/20 text-emerald-400 flex items-center gap-3';
-        statusAlert.innerHTML = `<i class="fa-solid fa-circle-check text-lg"></i> <div><strong>Berhasil!</strong> ${message}</div>`;
+        statusAlert.className = 'mt-4 sm:mt-5 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm border bg-emerald-500/10 border-emerald-500/20 text-emerald-400 flex items-center gap-2.5 sm:gap-3';
+        statusAlert.innerHTML = `<i class="fa-solid fa-circle-check text-base sm:text-lg flex-shrink-0"></i> <div><strong>Berhasil!</strong> ${message}</div>`;
       } else {
-        statusAlert.className = 'mt-5 p-4 rounded-2xl text-sm border bg-rose-500/10 border-rose-500/20 text-rose-400 flex items-center gap-3';
-        statusAlert.innerHTML = `<i class="fa-solid fa-circle-xmark text-lg"></i> <div><strong>Gagal!</strong> ${message}</div>`;
+        statusAlert.className = 'mt-4 sm:mt-5 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm border bg-rose-500/10 border-rose-500/20 text-rose-400 flex items-center gap-2.5 sm:gap-3';
+        statusAlert.innerHTML = `<i class="fa-solid fa-circle-xmark text-base sm:text-lg flex-shrink-0"></i> <div><strong>Gagal!</strong> ${message}</div>`;
       }
     }
   </script>
