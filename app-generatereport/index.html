@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WA Report System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Font: Plus Jakarta Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glow-effect {
+      box-shadow: 0 0 50px -10px rgba(59, 130, 246, 0.25);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-x-hidden">
+
+  <!-- Ambient Background Glows -->
+  <div class="absolute top-10 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+  <div class="absolute bottom-10 left-1/3 w-[350px] h-[350px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+  <!-- Main Container -->
+  <div class="w-full max-w-2xl glass-card rounded-3xl p-6 sm:p-8 glow-effect relative z-10 my-auto">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-slate-800 pb-5 mb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+          <i class="fa-solid fa-bolt text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">WA Report Parser</h1>
+          <p class="text-xs text-slate-400">Database Entry System • Transjakarta</p>
+        </div>
+      </div>
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-pulse"></span> Ready
+      </span>
+    </div>
+
+    <!-- Form Section -->
+    <form id="reportForm" class="space-y-4">
+      
+      <!-- Label & Quick Actions -->
+      <div class="flex items-center justify-between">
+        <label for="chatInput" class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+          <i class="fa-regular fa-clipboard text-blue-400"></i> Format Laporan Shift WA
+        </label>
+        
+        <button type="button" id="pasteBtn" class="text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 font-medium">
+          <i class="fa-regular fa-paste"></i> Tempel
+        </button>
+      </div>
+
+      <!-- Textarea Box -->
+      <div class="relative group">
+        <textarea 
+          id="chatInput" 
+          rows="9" 
+          class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition shadow-inner resize-none font-mono"
+          placeholder="Paste format chat laporan dari WhatsApp di sini..."
+          required
+        ></textarea>
+      </div>
+
+      <!-- Info Footer Textarea -->
+      <div class="flex items-center justify-between text-xs text-slate-500 px-1">
+        <span id="charCount">0 karakter</span>
+        <span id="lineCount">0 baris terdeteksi</span>
+      </div>
+
+      <!-- Action Button -->
+      <button 
+        type="submit" 
+        id="submitBtn" 
+        class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2"
+      >
+        <i class="fa-solid fa-paper-plane text-sm"></i>
+        <span>Submit ke Google Sheets</span>
+      </button>
+
+    </form>
+
+    <!-- Status Alert Box -->
+    <div id="statusAlert" class="hidden mt-5 p-4 rounded-2xl text-sm border transition-all duration-300"></div>
+
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    const chatInput = document.getElementById('chatInput');
+    const charCount = document.getElementById('charCount');
+    const lineCount = document.getElementById('lineCount');
+    const pasteBtn = document.getElementById('pasteBtn');
+    const reportForm = document.getElementById('reportForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusAlert = document.getElementById('statusAlert');
+
+    // Update Counter secara realtime
+    chatInput.addEventListener('input', updateCounters);
+
+    function updateCounters() {
+      const text = chatInput.value;
+      charCount.textContent = `${text.length} karakter`;
+      const lines = text ? text.split('\n').length : 0;
+      lineCount.textContent = `${lines} baris terdeteksi`;
+    }
+
+    // Tombol Paste dari Clipboard
+    pasteBtn.addEventListener('click', async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        chatInput.value = text;
+        updateCounters();
+      } catch (err) {
+        alert('Gagal mengakses clipboard. Silakan tempel secara manual (Ctrl+V / Paste).');
+      }
+    });
+
+    // Form Submit Handler
+    reportForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const chatText = chatInput.value.trim();
+      if (!chatText) return;
+
+      // Set Loading State UI
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-sm"></i> <span>Memproses & Menyimpan Data...</span>`;
+      
+      statusAlert.className = 'hidden';
+
+      // Panggil Backend Google Apps Script
+      google.script.run
+        .withSuccessHandler(function(response) {
+          resetButton();
+          
+          statusAlert.classList.remove('hidden');
+          if (response.success) {
+            statusAlert.className = 'mt-5 p-4 rounded-2xl text-sm border bg-emerald-500/10 border-emerald-500/20 text-emerald-400 flex items-center gap-3';
+            statusAlert.innerHTML = `<i class="fa-solid fa-circle-check text-lg"></i> <div><strong>Berhasil!</strong> ${response.message}</div>`;
+            chatInput.value = '';
+            updateCounters();
+          } else {
+            statusAlert.className = 'mt-5 p-4 rounded-2xl text-sm border bg-rose-500/10 border-rose-500/20 text-rose-400 flex items-center gap-3';
+            statusAlert.innerHTML = `<i class="fa-solid fa-circle-xmark text-lg"></i> <div><strong>Gagal!</strong> ${response.message}</div>`;
+          }
+        })
+        .withFailureHandler(function(err) {
+          resetButton();
+          statusAlert.classList.remove('hidden');
+          statusAlert.className = 'mt-5 p-4 rounded-2xl text-sm border bg-rose-500/10 border-rose-500/20 text-rose-400 flex items-center gap-3';
+          statusAlert.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-lg"></i> <div><strong>Error System:</strong> ${err.message}</div>`;
+        })
+        .processWALeport(chatText);
+    });
+
+    function resetButton() {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+      submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane text-sm"></i> <span>Submit ke Google Sheets</span>`;
+    }
+  </script>
+</body>
+</html>
