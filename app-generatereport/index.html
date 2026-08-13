@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id" class="dark w-full overflow-x-hidden">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -12,6 +12,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <style>
+    *, ::before, ::after {
+      box-sizing: border-box;
+    }
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden !important;
+      position: relative;
+    }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       -webkit-tap-highlight-color: transparent;
@@ -23,89 +31,91 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
     .glow-effect {
-      box-shadow: 0 10px 40px -10px rgba(59, 130, 246, 0.2);
+      box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.2);
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between p-3 sm:p-6 relative overflow-x-hidden">
+<body class="bg-slate-950 text-slate-100 min-h-screen w-full flex flex-col justify-between p-3 sm:p-6 antialiased">
 
-  <!-- Ambient Background Glows -->
-  <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
-  <div class="fixed bottom-0 left-1/3 w-[250px] sm:w-[350px] h-[250px] sm:h-[350px] bg-purple-600/10 rounded-full blur-[90px] pointer-events-none"></div>
+  <!-- Background Glow Wrapper (Dikunci agar tidak menyebabkan horizontal scroll di HP) -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute -top-20 left-1/2 -translate-x-1/2 w-[280px] sm:w-[450px] h-[280px] sm:h-[450px] bg-blue-600/15 rounded-full blur-[80px] sm:blur-[100px]"></div>
+    <div class="absolute -bottom-20 -left-10 w-[200px] sm:w-[350px] h-[200px] sm:h-[350px] bg-purple-600/15 rounded-full blur-[80px] sm:blur-[100px]"></div>
+  </div>
 
   <!-- Main Container -->
   <div class="w-full max-w-xl mx-auto glass-card rounded-2xl sm:rounded-3xl p-4 sm:p-8 glow-effect relative z-10 my-auto">
     
     <!-- Header Area -->
-    <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-5 sm:mb-6">
-      <div class="flex items-center gap-3">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4 sm:mb-6 min-w-0 gap-2">
+      <div class="flex items-center gap-3 min-w-0">
         <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 flex-shrink-0">
           <i class="fa-solid fa-bolt text-lg sm:text-xl"></i>
         </div>
-        <div>
-          <h1 class="text-lg sm:text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent leading-tight">WA Report Parser</h1>
-          <p class="text-[11px] sm:text-xs text-slate-400">Database Entry System</p>
+        <div class="min-w-0">
+          <h1 class="text-base sm:text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent leading-tight truncate">WA Report Parser</h1>
+          <p class="text-[11px] sm:text-xs text-slate-400 truncate">Database Entry System</p>
         </div>
       </div>
-      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+      <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex-shrink-0">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> Ready
       </span>
     </div>
 
     <!-- Form Section -->
-    <form id="reportForm" class="space-y-4">
+    <form id="reportForm" class="space-y-4 w-full">
       
       <!-- Label & Quick Paste Button -->
-      <div class="flex items-center justify-between gap-2">
-        <label for="chatInput" class="text-xs sm:text-sm font-semibold text-slate-300 flex items-center gap-1.5">
-          <i class="fa-regular fa-clipboard text-blue-400"></i> Format Laporan Shift WA
+      <div class="flex items-center justify-between gap-2 min-w-0">
+        <label for="chatInput" class="text-xs sm:text-sm font-semibold text-slate-300 flex items-center gap-1.5 truncate">
+          <i class="fa-regular fa-clipboard text-blue-400 flex-shrink-0"></i> Format Laporan Shift WA
         </label>
         
         <button 
           type="button" 
           id="pasteBtn" 
-          class="text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 active:bg-blue-500/20 border border-blue-500/30 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 font-medium cursor-pointer touch-manipulation"
+          class="text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 active:bg-blue-500/20 border border-blue-500/30 px-2.5 py-1.5 rounded-xl transition flex items-center gap-1.5 font-medium flex-shrink-0 touch-manipulation"
         >
           <i class="fa-regular fa-paste"></i> Tempel
         </button>
       </div>
 
       <!-- Textarea Box -->
-      <div class="relative group">
+      <div class="w-full">
         <textarea 
           id="chatInput" 
           rows="8" 
-          class="w-full bg-slate-900/90 border border-slate-800 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 text-base sm:text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition shadow-inner resize-none font-mono"
+          class="w-full max-w-full bg-slate-900/90 border border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition shadow-inner resize-none font-mono"
           placeholder="Paste format chat laporan dari WhatsApp di sini..."
           required
         ></textarea>
       </div>
 
       <!-- Realtime Counter Footer -->
-      <div class="flex items-center justify-between text-[11px] sm:text-xs text-slate-500 px-1">
-        <span id="charCount">0 karakter</span>
-        <span id="lineCount">0 baris terdeteksi</span>
+      <div class="flex items-center justify-between text-[11px] sm:text-xs text-slate-500 px-1 min-w-0">
+        <span id="charCount" class="truncate">0 karakter</span>
+        <span id="lineCount" class="truncate">0 baris terdeteksi</span>
       </div>
 
       <!-- Action Button -->
       <button 
         type="submit" 
         id="submitBtn" 
-        class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.99] text-white font-semibold py-3.5 px-5 rounded-xl sm:rounded-2xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base touch-manipulation min-h-[48px]"
+        class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.99] text-white font-semibold py-3 px-4 rounded-xl sm:rounded-2xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base touch-manipulation min-h-[46px]"
       >
-        <i class="fa-solid fa-paper-plane text-sm"></i>
-        <span>Submit ke Google Sheets</span>
+        <i class="fa-solid fa-paper-plane text-sm flex-shrink-0"></i>
+        <span class="truncate">Submit ke Google Sheets</span>
       </button>
 
     </form>
 
     <!-- Status Alert Box -->
-    <div id="statusAlert" class="hidden mt-4 sm:mt-5 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm border transition-all duration-300"></div>
+    <div id="statusAlert" class="hidden mt-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm border transition-all duration-300 w-full overflow-hidden"></div>
 
   </div>
 
   <!-- Footer Info -->
-  <p class="text-center text-[11px] text-slate-600 mt-4 mb-2 z-10">Optimized for Mobile & Desktop</p>
+  <p class="text-center text-[11px] text-slate-600 mt-4 mb-1 z-10">Optimized for Mobile & Desktop</p>
 
   <!-- JavaScript Logic -->
   <script>
@@ -214,11 +224,11 @@
     function showStatus(isSuccess, message) {
       statusAlert.classList.remove('hidden');
       if (isSuccess) {
-        statusAlert.className = 'mt-4 sm:mt-5 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm border bg-emerald-500/10 border-emerald-500/20 text-emerald-400 flex items-center gap-2.5 sm:gap-3';
-        statusAlert.innerHTML = `<i class="fa-solid fa-circle-check text-base sm:text-lg flex-shrink-0"></i> <div><strong>Berhasil!</strong> ${message}</div>`;
+        statusAlert.className = 'mt-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm border bg-emerald-500/10 border-emerald-500/20 text-emerald-400 flex items-center gap-2.5';
+        statusAlert.innerHTML = `<i class="fa-solid fa-circle-check text-base sm:text-lg flex-shrink-0"></i> <div class="min-w-0 break-words"><strong>Berhasil!</strong> ${message}</div>`;
       } else {
-        statusAlert.className = 'mt-4 sm:mt-5 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm border bg-rose-500/10 border-rose-500/20 text-rose-400 flex items-center gap-2.5 sm:gap-3';
-        statusAlert.innerHTML = `<i class="fa-solid fa-circle-xmark text-base sm:text-lg flex-shrink-0"></i> <div><strong>Gagal!</strong> ${message}</div>`;
+        statusAlert.className = 'mt-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm border bg-rose-500/10 border-rose-500/20 text-rose-400 flex items-center gap-2.5';
+        statusAlert.innerHTML = `<i class="fa-solid fa-circle-xmark text-base sm:text-lg flex-shrink-0"></i> <div class="min-w-0 break-words"><strong>Gagal!</strong> ${message}</div>`;
       }
     }
   </script>
