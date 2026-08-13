@@ -43,7 +43,7 @@
         </div>
         <div>
           <h1 class="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">WA Report Parser</h1>
-          <p class="text-xs text-slate-400">Database Entry System • Transjakarta</p>
+          <p class="text-xs text-slate-400">Database Entry System</p>
         </div>
       </div>
       <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -101,6 +101,9 @@
 
   <!-- JavaScript Logic -->
   <script>
+    // ⚠️ MASUKKAN WEB APP URL HASIL DEPLOY GOOGLE APPS SCRIPT DI SINI JIKA DIPASANG DI HOSTING SENDIRI
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzFNZ1x3uLxC6GlvS4XrnqBNclZRTqhFi4E8Ha2fZnWHjnaHl0u9wlRR0q5zAjkqUUaNQ/exec"; 
+
     const chatInput = document.getElementById('chatInput');
     const charCount = document.getElementById('charCount');
     const lineCount = document.getElementById('lineCount');
@@ -109,7 +112,7 @@
     const submitBtn = document.getElementById('submitBtn');
     const statusAlert = document.getElementById('statusAlert');
 
-    // Update Counter secara realtime
+    // Live Counter
     chatInput.addEventListener('input', updateCounters);
 
     function updateCounters() {
@@ -119,60 +122,95 @@
       lineCount.textContent = `${lines} baris terdeteksi`;
     }
 
-    // Tombol Paste dari Clipboard
+    // Quick Paste
     pasteBtn.addEventListener('click', async () => {
       try {
         const text = await navigator.clipboard.readText();
         chatInput.value = text;
         updateCounters();
       } catch (err) {
-        alert('Gagal mengakses clipboard. Silakan tempel secara manual (Ctrl+V / Paste).');
+        alert('Gagal mengakses clipboard secara otomatis. Silakan tempel manual (Ctrl+V / Paste).');
       }
     });
 
-    // Form Submit Handler
+    // Form Submit Logic
     reportForm.addEventListener('submit', function(e) {
       e.preventDefault();
       
       const chatText = chatInput.value.trim();
       if (!chatText) return;
 
-      // Set Loading State UI
       submitBtn.disabled = true;
       submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
       submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-sm"></i> <span>Memproses & Menyimpan Data...</span>`;
-      
       statusAlert.className = 'hidden';
 
-      // Panggil Backend Google Apps Script
-      google.script.run
-        .withSuccessHandler(function(response) {
+      // Path A: Jika dijalankan di dalam Google Apps Script
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            resetButton();
+            if (res.success) {
+              showStatus(true, res.message);
+              chatInput.value = '';
+              updateCounters();
+            } else {
+              showStatus(false, res.message);
+            }
+          })
+          .withFailureHandler(function(err) {
+            resetButton();
+            showStatus(false, err.message);
+          })
+          .processWALeport(chatText);
+      } 
+      // Path B: Jika dijalankan di Hosting Pribadi via API Fetch
+      else {
+        if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes("AKfycbx...")) {
           resetButton();
-          
-          statusAlert.classList.remove('hidden');
-          if (response.success) {
-            statusAlert.className = 'mt-5 p-4 rounded-2xl text-sm border bg-emerald-500/10 border-emerald-500/20 text-emerald-400 flex items-center gap-3';
-            statusAlert.innerHTML = `<i class="fa-solid fa-circle-check text-lg"></i> <div><strong>Berhasil!</strong> ${response.message}</div>`;
+          showStatus(false, "URL API Google Apps Script belum diisi pada variabel GAS_WEB_APP_URL di file Index.html!");
+          return;
+        }
+
+        fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          mode: 'cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ chatText: chatText })
+        })
+        .then(res => res.json())
+        .then(data => {
+          resetButton();
+          if (data.success) {
+            showStatus(true, data.message);
             chatInput.value = '';
             updateCounters();
           } else {
-            statusAlert.className = 'mt-5 p-4 rounded-2xl text-sm border bg-rose-500/10 border-rose-500/20 text-rose-400 flex items-center gap-3';
-            statusAlert.innerHTML = `<i class="fa-solid fa-circle-xmark text-lg"></i> <div><strong>Gagal!</strong> ${response.message}</div>`;
+            showStatus(false, data.message);
           }
         })
-        .withFailureHandler(function(err) {
+        .catch(err => {
           resetButton();
-          statusAlert.classList.remove('hidden');
-          statusAlert.className = 'mt-5 p-4 rounded-2xl text-sm border bg-rose-500/10 border-rose-500/20 text-rose-400 flex items-center gap-3';
-          statusAlert.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-lg"></i> <div><strong>Error System:</strong> ${err.message}</div>`;
-        })
-        .processWALeport(chatText);
+          showStatus(false, "Gagal terhubung ke API: " + err.message);
+        });
+      }
     });
 
     function resetButton() {
       submitBtn.disabled = false;
       submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
       submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane text-sm"></i> <span>Submit ke Google Sheets</span>`;
+    }
+
+    function showStatus(isSuccess, message) {
+      statusAlert.classList.remove('hidden');
+      if (isSuccess) {
+        statusAlert.className = 'mt-5 p-4 rounded-2xl text-sm border bg-emerald-500/10 border-emerald-500/20 text-emerald-400 flex items-center gap-3';
+        statusAlert.innerHTML = `<i class="fa-solid fa-circle-check text-lg"></i> <div><strong>Berhasil!</strong> ${message}</div>`;
+      } else {
+        statusAlert.className = 'mt-5 p-4 rounded-2xl text-sm border bg-rose-500/10 border-rose-500/20 text-rose-400 flex items-center gap-3';
+        statusAlert.innerHTML = `<i class="fa-solid fa-circle-xmark text-lg"></i> <div><strong>Gagal!</strong> ${message}</div>`;
+      }
     }
   </script>
 </body>
