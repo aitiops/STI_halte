@@ -1,6 +1,6 @@
 /**
  * LOGIN ENGINE - IT STOCK OPNAME
- * Final Fix: Premium UI Sync, Smooth Modal Transitions, & Reset Password Direct 🚀
+ * Final Fix: Direct Auto-Redirect to Reset Password on First Login 🚀
  */
 
 async function login() {
@@ -37,38 +37,15 @@ async function login() {
         console.log("Respon Login:", data);
 
         if (data.status) {
-            // A. CEK APAKAH PERLU RESET PASSWORD (LOGIN PERTAMA)
-            if (data.reset) {
+            // A. CEK APAKAH PERLU RESET PASSWORD (LANGSUNG DIRECT OTOMATIS)
+            if (data.reset === true || data.reset === "true") {
                 forceHideLoading();
                 localStorage.setItem("reset_user_id", data.user_id || username);
                 
-                if (document.getElementById("passwordWarningModal")) return;
+                console.log("Sandi default terdeteksi. Mengalihkan ke halaman reset password...");
                 
-                // SUNTIKKAN MODAL PERINGATAN PREMIUM & AUTO REDIRECT KE HALAMAN RESET
-                const warningModalHtml = `
-                    <div id="passwordWarningModal" class="fixed inset-0 bg-slate-900/60 dark:bg-[#050b14]/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 opacity-0 transition-opacity duration-300">
-                        <div class="bg-white dark:bg-[#0a1224] rounded-[2.5rem] p-8 max-w-sm w-full text-center shadow-2xl border border-slate-200 dark:border-slate-800 transform scale-95 transition-all duration-300" id="pwmContent">
-                            <div class="w-16 h-16 bg-amber-50 dark:bg-amber-900/30 text-amber-500 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 border border-amber-100 dark:border-amber-800/50 animate-pulse">
-                                ⚠️
-                            </div>
-                            <h3 class="text-base font-black text-slate-800 dark:text-white uppercase tracking-tight mb-2">Keamanan Akun</h3>
-                            <p class="text-slate-500 dark:text-slate-400 text-xs font-medium mb-6 leading-relaxed">
-                                Sistem mendeteksi Anda menggunakan sandi bawaan. Silakan perbarui sandi demi keamanan data Command Center.
-                            </p>
-                            <button onclick="window.location.href='reset-password.html?user_id=${data.user_id || username}'" class="w-full bg-[#0095DA] hover:bg-[#007bb5] dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white py-3.5 rounded-xl text-xs font-black transition-all shadow-lg shadow-blue-900/20 dark:shadow-cyan-900/20 active:scale-95 uppercase tracking-wider">
-                                Lanjut Ganti Password
-                            </button>
-                        </div>
-                    </div>
-                `;
-                document.body.insertAdjacentHTML("beforeend", warningModalHtml);
-                
-                setTimeout(() => {
-                    document.getElementById("passwordWarningModal").classList.remove("opacity-0");
-                    document.getElementById("pwmContent").classList.remove("scale-95");
-                    document.getElementById("pwmContent").classList.add("scale-100");
-                }, 10);
-                
+                // Langsung redirect otomatis tanpa modal
+                window.location.href = `reset-password.html?user_id=${data.user_id || username}`;
                 return;
             }
 
